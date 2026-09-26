@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Vigia.Application.Common.Interfaces;
+using Vigia.Domain.Alerts;
 using Vigia.Domain.Checks;
 using Vigia.Domain.Results;
+using Vigia.Domain.Rules;
 using Vigia.Domain.Webhooks;
 using Vigia.Infrastructure.Identity;
 
@@ -28,6 +30,16 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<CheckResultRollup> CheckResultRollups
     {
         get { return Set<CheckResultRollup>(); }
+    }
+
+    public DbSet<Rule> Rules
+    {
+        get { return Set<Rule>(); }
+    }
+
+    public DbSet<Alert> Alerts
+    {
+        get { return Set<Alert>(); }
     }
 
     public DbSet<WebhookReceipt> WebhookReceipts

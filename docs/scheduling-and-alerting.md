@@ -95,3 +95,9 @@ Quartz itself supports second-level schedules and clustering; Piro's minute gran
 Retention pruning, rollups, maintenance windows and shift-start notifications are few, cron-like, and must not run twice when there are several API replicas. That is Quartz's sweet spot (Postgres store + clustering). Start with a plain `BackgroundService` while there are one or two; adopt Quartz when running multiple replicas or when calendars are needed.
 
 Escalation timers are not scheduled jobs: they are derived from DB state (alert fired at + step delay) and evaluated by a polling loop, which survives restarts without extra state.
+
+## Implementation status (2026-09-26)
+
+- Rules and alerts are built. Evaluation runs in `ResultIngestor` on every result, in the same transaction as the result.
+- Ingestion is serialized per check with `pg_advisory_xact_lock`, so concurrent results for one check never race; different checks ingest in parallel. Alerts also carry Postgres `xmin` as an optimistic concurrency token, and a partial unique index guarantees one firing alert per rule and check.
+- Not yet: quorum across agents (every result counts until remote agents exist), `check_states`, and writing alert changes to a notification outbox (comes with notifiers).
