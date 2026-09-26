@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Vigia.Application.Workers;
 using Vigia.Application.Common.Exceptions;
 using Vigia.Application.Common.Interfaces;
+using Vigia.Application.Common.Security;
 using Vigia.Application.Plugins;
 using Vigia.Plugins;
 
@@ -33,7 +34,7 @@ public sealed class ReceiveWebhookHandler(
             throw new NotFoundException("webhook", $"{command.Slug}/{command.Webhook}");
         }
 
-        if (!WebhookTokens.Matches(command.Token, check.WebhookTokenHash))
+        if (!SecretTokens.Matches(command.Token, check.WebhookTokenHash))
         {
             throw new UnauthorizedException("Missing or invalid webhook token.");
         }

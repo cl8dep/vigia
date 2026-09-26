@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Vigia.Application.Common;
 using Vigia.Application.Common.Exceptions;
 using Vigia.Application.Common.Interfaces;
+using Vigia.Application.Common.Security;
 using Vigia.Application.Plugins;
-using Vigia.Application.Webhooks;
 using Vigia.Domain.Checks;
 using Vigia.Domain.Common;
 
@@ -58,7 +58,7 @@ public sealed class CreateCheckHandler(IAppDbContext db, IPluginRegistry registr
         string? webhookToken = null;
         if (plugin.Webhooks.Count > 0)
         {
-            (webhookToken, var hash) = WebhookTokens.Create();
+            (webhookToken, var hash) = SecretTokens.Create();
             check.SetWebhookTokenHash(hash);
         }
 

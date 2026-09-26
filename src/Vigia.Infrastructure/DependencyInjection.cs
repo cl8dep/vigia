@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -11,6 +12,7 @@ using Vigia.Application.Plugins;
 using Vigia.Application.Results;
 using Vigia.Application.Rules;
 using Vigia.Infrastructure.Workers;
+using Vigia.Infrastructure.Auth;
 using Vigia.Infrastructure.Checks;
 using Vigia.Infrastructure.Identity;
 using Vigia.Infrastructure.Persistence;
@@ -44,6 +46,14 @@ public static class DependencyInjection
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<AppDbContext>();
         services.Configure<AuthOptions>(configuration.GetSection(AuthOptions.Section));
+
+        // Workers authenticate with their own scheme and are only authorized on worker endpoints.
+        services.AddAuthentication()
+            .AddScheme<AuthenticationSchemeOptions, WorkerAuthenticationHandler>(WorkerAuthentication.Scheme, null);
+        services.AddAuthorizationBuilder()
+            .AddPolicy(WorkerAuthentication.Policy, policy => policy
+                .AddAuthenticationSchemes(WorkerAuthentication.Scheme)
+                .RequireClaim(WorkerAuthentication.SlugClaim));
         services.AddScoped<IIdentityService, IdentityService>();
 
         services.Configure<DatabaseOptions>(configuration.GetSection(DatabaseOptions.Section));
@@ -71,6 +81,7 @@ public static class DependencyInjection
         services.AddMetrics();
         services.AddSingleton<WorkerMetrics>();
         services.AddSingleton<WorkerScheduler>();
+        services.AddScoped<BuiltInWorkerRegistration>();
         services.AddHostedService<BuiltInWorkerService>();
 
         services.Configure<RetentionOptions>(configuration.GetSection(RetentionOptions.Section));

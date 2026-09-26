@@ -84,6 +84,12 @@ public abstract class Entity
         Tags[key] = value;
     }
 
+    /// <summary>Removes a system tag when the fact it mirrors no longer holds.</summary>
+    protected void RemoveSystemTag(string key)
+    {
+        Tags.Remove(key);
+    }
+
     /// <summary>Called by persistence; not for use in application code.</summary>
     public void Touch(DateTimeOffset now, bool isNew)
     {

@@ -1,21 +1,22 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Vigia.Application.Webhooks;
+namespace Vigia.Application.Common.Security;
 
 /// <summary>
-/// Generates and verifies webhook tokens. Only the SHA-256 hash is stored.
+/// Random secrets (webhook tokens, worker enrollment tokens and credentials). Only the SHA-256 hash is stored.
 /// </summary>
-public static class WebhookTokens
+public static class SecretTokens
 {
-    /// <summary>Creates a random 256-bit token (URL-safe) and its hash.</summary>
-    public static (string Token, string Hash) Create()
+    /// <summary>Creates a random 256-bit URL-safe secret, with an optional recognizable prefix, and its hash.</summary>
+    /// <param name="prefix">For example <c>vw_</c>, so leaked secrets are easy to identify and scan for.</param>
+    public static (string Token, string Hash) Create(string prefix = "")
     {
-        var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+        var token = prefix + Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
         return (token, Hash(token));
     }
 
-    /// <summary>Hex SHA-256 of a token.</summary>
+    /// <summary>Hex SHA-256 of a secret.</summary>
     public static string Hash(string token)
     {
         return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(token)));

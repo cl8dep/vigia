@@ -11,6 +11,9 @@ public sealed class WorkerOptions
     /// <summary>Name recorded on every result this worker produces.</summary>
     public string Name { get; set; } = "builtin";
 
+    /// <summary>Region of the built-in worker, mirrored as its <c>vigia:region</c> tag.</summary>
+    public string Region { get; set; } = "local";
+
     /// <summary>Run the built-in worker inside the control plane. Turn off when only remote workers should probe.</summary>
     public bool BuiltInEnabled { get; set; } = true;
 

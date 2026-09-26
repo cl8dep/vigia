@@ -58,8 +58,19 @@ workers:
 
 1. Rename agent to worker (done).
 2. Tags replace labels, with `vigia:*` reconciliation (done: `vigia:plugin`; worker tags come with step 3).
-3. Worker entity, enrollment tokens, worker credentials; built-in worker registered as a worker with `vigia:builtin`.
+3. Worker entity, enrollment tokens, worker credentials; built-in worker registered as a worker with `vigia:builtin` (done).
 4. Placement (`workers.match`) and per-worker assignments; `unschedulable` / `workers-offline` states.
 5. Quorum in rule evaluation.
 6. Worker protocol (SignalR control + HTTPS data) and the `Vigia.Worker` binary reusing `WorkerScheduler`, with a local result buffer for degraded mode.
 7. Plugin distribution from the control plane; fallback notifications (after notifiers exist).
+
+## Enrollment (built)
+
+1. An admin registers the worker: `POST /api/v1/workers { slug, name, region, tags }`. The response carries a one-time enrollment token (`vwe_...`), valid 24 hours; only its SHA-256 is stored.
+2. The worker process exchanges it: `POST /worker/v1/enroll { token, version }` (no auth). It gets its credential (`vw_...`), again stored as a hash only. The token is consumed.
+3. From then on the worker sends `Authorization: Worker <credential>` to `/worker/v1/*` (today: `heartbeat`). The worker scheme and the user scheme never overlap: a user token is rejected on `/worker/v1`, a worker credential on `/api/v1`.
+4. Admins can revoke the credential (`POST /api/v1/workers/{slug}/revoke`), issue a new enrollment token to reinstall (`POST /api/v1/workers/{slug}/enrollment-token`; the old credential keeps working until the worker re-enrolls), or delete the worker.
+5. A worker is `online` when it reported within two minutes.
+
+The built-in worker registers itself on startup (slug `Worker:Name`, region `Worker:Region`), reports every minute, has no credential and cannot be deleted, enrolled or revoked.
+

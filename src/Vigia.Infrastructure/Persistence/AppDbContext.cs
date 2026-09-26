@@ -7,6 +7,7 @@ using Vigia.Domain.Checks;
 using Vigia.Domain.Results;
 using Vigia.Domain.Rules;
 using Vigia.Domain.Webhooks;
+using Vigia.Domain.Workers;
 using Vigia.Infrastructure.Identity;
 
 namespace Vigia.Infrastructure.Persistence;
@@ -40,6 +41,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Alert> Alerts
     {
         get { return Set<Alert>(); }
+    }
+
+    public DbSet<Worker> Workers
+    {
+        get { return Set<Worker>(); }
     }
 
     public DbSet<WebhookReceipt> WebhookReceipts

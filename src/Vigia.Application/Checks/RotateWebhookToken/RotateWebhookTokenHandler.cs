@@ -2,8 +2,8 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Vigia.Application.Common.Exceptions;
 using Vigia.Application.Common.Interfaces;
+using Vigia.Application.Common.Security;
 using Vigia.Application.Plugins;
-using Vigia.Application.Webhooks;
 
 namespace Vigia.Application.Checks.RotateWebhookToken;
 
@@ -23,7 +23,7 @@ public sealed class RotateWebhookTokenHandler(IAppDbContext db, IPluginRegistry 
             throw new ValidationException("plugin", $"Plugin '{check.Plugin}' declares no webhooks.");
         }
 
-        var (token, hash) = WebhookTokens.Create();
+        var (token, hash) = SecretTokens.Create();
         check.SetWebhookTokenHash(hash);
         await db.SaveChangesAsync(ct);
         return new WebhookTokenDto(token);
