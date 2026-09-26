@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Mediator;
+using Vigia.Application.Placement;
 
 namespace Vigia.Application.Checks.UpdateCheck;
 
@@ -14,6 +15,7 @@ namespace Vigia.Application.Checks.UpdateCheck;
 /// <param name="Interval">Duration string. Defaults to the plugin default.</param>
 /// <param name="Tags">User tags; omitted means none. System tags are kept.</param>
 /// <param name="Enabled">Whether the check is scheduled. Defaults to true.</param>
+/// <param name="Workers">Which workers run the check and the quorum; omitted means every worker.</param>
 public sealed record UpdateCheckCommand(
     string Slug,
     string? Name,
@@ -21,4 +23,5 @@ public sealed record UpdateCheckCommand(
     JsonElement Config,
     string? Interval,
     IReadOnlyDictionary<string, string?>? Tags,
-    bool? Enabled) : ICommand<CheckDto>;
+    bool? Enabled,
+    CheckWorkersSpec? Workers = null) : ICommand<CheckDto>;

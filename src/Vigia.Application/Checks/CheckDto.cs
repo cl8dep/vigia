@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Vigia.Application.Common;
+using Vigia.Application.Placement;
 using Vigia.Application.Plugins;
 using Vigia.Domain.Checks;
 
@@ -22,6 +23,8 @@ namespace Vigia.Application.Checks;
 /// <param name="UpdatedAt">Last update time (UTC).</param>
 /// <param name="Webhooks">Webhooks this check receives, as <c>/api/v1/hooks/{slug}/{name}</c>.</param>
 /// <param name="WebhookToken">Webhook token; only present in the response that creates it.</param>
+/// <param name="Workers">Which workers run the check and the quorum.</param>
+/// <param name="Placement">Where the check can run right now.</param>
 public sealed record CheckDto(
     Guid Id,
     string Slug,
@@ -35,13 +38,16 @@ public sealed record CheckDto(
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
     IReadOnlyList<string> Webhooks,
-    string? WebhookToken)
+    string? WebhookToken,
+    CheckWorkersDto Workers,
+    PlacementDto Placement)
 {
     /// <summary>Maps an entity, removing secret fields using the plugin schema when the plugin is loaded.</summary>
     /// <param name="check">Entity.</param>
     /// <param name="plugin">Plugin, or null if not installed (then the whole config is hidden).</param>
+    /// <param name="placement">Where the check can run.</param>
     /// <param name="webhookToken">Newly issued webhook token to show once, if any.</param>
-    public static CheckDto From(Check check, CheckPlugin? plugin, string? webhookToken = null)
+    public static CheckDto From(Check check, CheckPlugin? plugin, PlacementDto placement, string? webhookToken = null)
     {
         return new CheckDto(
             check.Id,
@@ -56,7 +62,9 @@ public sealed record CheckDto(
             check.CreatedAt,
             check.UpdatedAt,
             plugin?.Webhooks.Keys.Order().ToList() ?? [],
-            webhookToken);
+            webhookToken,
+            CheckWorkersSpecApplier.ToDto(check),
+            placement);
     }
 
     private static JsonElement RedactSecrets(string configJson, CheckPlugin? plugin)

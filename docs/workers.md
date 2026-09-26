@@ -59,7 +59,7 @@ workers:
 1. Rename agent to worker (done).
 2. Tags replace labels, with `vigia:*` reconciliation (done: `vigia:plugin`; worker tags come with step 3).
 3. Worker entity, enrollment tokens, worker credentials; built-in worker registered as a worker with `vigia:builtin` (done).
-4. Placement (`workers.match`) and per-worker assignments; `unschedulable` / `workers-offline` states.
+4. Placement (`workers.match`) and per-worker assignments; `unschedulable` / `workers-offline` states (done).
 5. Quorum in rule evaluation.
 6. Worker protocol (SignalR control + HTTPS data) and the `Vigia.Worker` binary reusing `WorkerScheduler`, with a local result buffer for degraded mode.
 7. Plugin distribution from the control plane; fallback notifications (after notifiers exist).
@@ -73,4 +73,11 @@ workers:
 5. A worker is `online` when it reported within two minutes.
 
 The built-in worker registers itself on startup (slug `Worker:Name`, region `Worker:Region`), reports every minute, has no credential and cannot be deleted, enrolled or revoked.
+
+## Placement (built)
+
+- Checks take `workers: { match, quorum }`. `match` is a tag selector over worker tags, system tags included (`vigia:region`, `vigia:builtin`). `quorum` is stored and validated now (`2`, `"2"`, `"50%"`) and applied in step 5.
+- Checks of plugins that declare webhooks (heartbeat) run only on the built-in worker, because receipts live on the control plane; a `workers.match` on them is rejected.
+- Every check response carries `placement`: `state` (`ok`, `unschedulable`, `workers-offline`), `eligible` and `online` worker slugs.
+- The built-in worker filters its own assignments by its tags. Remote workers read theirs from `GET /worker/v1/assignments`: a full snapshot with a `revision` that changes when any assigned check or the worker's own tags change. Assignments include check config with secrets, since the worker needs them to probe.
 

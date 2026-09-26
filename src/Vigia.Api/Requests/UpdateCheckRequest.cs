@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Vigia.Application.Placement;
 
 namespace Vigia.Api.Requests;
 
@@ -11,10 +12,12 @@ namespace Vigia.Api.Requests;
 /// <param name="Interval">Duration string. Defaults to the plugin default.</param>
 /// <param name="Tags">User tags; omitted means none. System tags are kept.</param>
 /// <param name="Enabled">Whether the check is scheduled. Defaults to true.</param>
+/// <param name="Workers">Which workers run the check and the quorum; omitted means every worker.</param>
 public sealed record UpdateCheckRequest(
     string? Name,
     string? Plugin,
     JsonElement Config,
     string? Interval,
     IReadOnlyDictionary<string, string?>? Tags,
-    bool? Enabled);
+    bool? Enabled,
+    CheckWorkersSpec? Workers);

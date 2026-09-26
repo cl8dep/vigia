@@ -4,6 +4,7 @@ using Vigia.Application.Common;
 using Vigia.Application.Common.Exceptions;
 using Vigia.Application.Common.Interfaces;
 using Vigia.Application.Common.Security;
+using Vigia.Application.Placement;
 using Vigia.Application.Plugins;
 using Vigia.Domain.Checks;
 using Vigia.Domain.Common;
@@ -13,7 +14,7 @@ namespace Vigia.Application.Checks.CreateCheck;
 /// <summary>
 /// Handles <see cref="CreateCheckCommand"/>.
 /// </summary>
-public sealed class CreateCheckHandler(IAppDbContext db, IPluginRegistry registry) : ICommandHandler<CreateCheckCommand, CheckDto>
+public sealed class CreateCheckHandler(IAppDbContext db, IPluginRegistry registry, TimeProvider time) : ICommandHandler<CreateCheckCommand, CheckDto>
 {
     /// <inheritdoc />
     public async ValueTask<CheckDto> Handle(CreateCheckCommand command, CancellationToken ct)
@@ -55,6 +56,8 @@ public sealed class CreateCheckHandler(IAppDbContext db, IPluginRegistry registr
             throw new ValidationException("tags", ex.Message);
         }
 
+        CheckWorkersSpecApplier.Apply(check, plugin, command.Workers);
+
         string? webhookToken = null;
         if (plugin.Webhooks.Count > 0)
         {
@@ -65,6 +68,7 @@ public sealed class CreateCheckHandler(IAppDbContext db, IPluginRegistry registr
         db.Checks.Add(check);
         await db.SaveChangesAsync(ct);
 
-        return CheckDto.From(check, plugin, webhookToken);
+        var workers = await db.Workers.AsNoTracking().ToListAsync(ct);
+        return CheckDto.From(check, plugin, CheckPlacement.Evaluate(check, plugin, workers, time.GetUtcNow()), webhookToken);
     }
 }

@@ -23,6 +23,7 @@ Self-hosted monitoring, on-call and AI-assisted incident investigation. Working 
 - **Built-in worker.** Probes every enabled check on its interval with bounded concurrency, jitter and no overlapping probes. Emits metrics on meter `Vigia.Worker`.
 - **Results.** Every probe is stored with exact timestamps. Hourly rollups keep per-dimension min / avg / max / p95. Raw results are kept 14 days, rollups 400 days.
 - **Workers.** Remote workers are registered by an admin, enroll once with a one-time token and authenticate with their own credential on a separate API (`/worker/v1`). The built-in worker registers itself with `vigia:builtin` and `vigia:region`.
+- **Placement.** Checks pick workers with `workers.match` (a tag selector over worker tags) and set a `quorum`. Each check reports its placement: `ok`, `unschedulable` (no worker matches) or `workers-offline`. Heartbeat checks stay on the control plane.
 - **Tags.** `key` or `key:value` on checks and rules, with reserved system tags such as `vigia:plugin`.
 - **Rules and alerts.** A rule targets one check or a tag selector (AND across keys, OR within a key's values, `null` for key present; `vigia:plugin` matches the plugin id) and fires on `outcome: down` or a dimension `above` / `below` a threshold, after `for` consecutive results; it resolves after `recoverAfter`. Rules are additive. One firing alert per rule and check: new results update it (message, occurrences) instead of opening another. Error results neither fire nor recover. Results and alert changes are saved in one transaction, serialized per check.
 - **Auth.** Email and password with bearer and refresh tokens. Only the first user can sign up unless `Auth:OpenSignUp` is on.
@@ -75,6 +76,7 @@ curl $URL/api/v1/checks/example/results -H "Authorization: Bearer $TOKEN"
 | `GET`, `PUT`, `DELETE` | `/api/v1/workers/{slug}` | Get, replace or delete a worker |
 | `POST` | `/api/v1/workers/{slug}/enrollment-token`, `/revoke` | New enrollment token; revoke the credential |
 | `POST` | `/worker/v1/enroll` | Worker exchanges its enrollment token for a credential |
+| `GET` | `/worker/v1/assignments` | Checks this worker must run (full snapshot with a revision) |
 | `POST` | `/worker/v1/heartbeat` | Worker reports alive (`Authorization: Worker <credential>`) |
 | `GET`, `POST` | `/api/v1/rules` | List or create rules |
 | `GET`, `PUT`, `DELETE` | `/api/v1/rules/{slug}` | Get, replace or delete a rule |

@@ -26,6 +26,14 @@ public sealed class CheckConfiguration : IEntityTypeConfiguration<Check>
             .HasColumnType("jsonb")
             .HasConversion(new JsonDictionaryConverter<string?>(), new DictionaryComparer<string?>());
         builder.Property(c => c.WebhookTokenHash).HasMaxLength(64);
+        builder.Property(c => c.WorkerSelector)
+            .HasColumnType("jsonb")
+            .HasConversion(new TagSelectorConverter(), new TagSelectorComparer());
+
+        // Stored as written ("2" or "50%"); EF never passes null to the converter.
+        builder.Property(c => c.Quorum)
+            .HasMaxLength(10)
+            .HasConversion(q => q!.ToString(), s => Quorum.Parse(s));
         builder.Property(c => c.ManagedBy).HasConversion<string>().HasMaxLength(20);
     }
 }

@@ -52,7 +52,7 @@ public sealed class ChecksController(IMediator mediator) : ControllerBase
     [HttpPut("{slug}")]
     public async Task<ActionResult<CheckDto>> Update(string slug, UpdateCheckRequest request, CancellationToken ct)
     {
-        var command = new UpdateCheckCommand(slug, request.Name, request.Plugin, request.Config, request.Interval, request.Tags, request.Enabled);
+        var command = new UpdateCheckCommand(slug, request.Name, request.Plugin, request.Config, request.Interval, request.Tags, request.Enabled, request.Workers);
         return Ok(await mediator.Send(command, ct));
     }
 

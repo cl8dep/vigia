@@ -62,6 +62,12 @@ public sealed class Check : Entity
     /// </summary>
     public string? WebhookTokenHash { get; private set; }
 
+    /// <summary>Tags a worker must have to run this check. <see cref="TagSelector.Any"/> means every worker.</summary>
+    public TagSelector WorkerSelector { get; private set; } = TagSelector.Any;
+
+    /// <summary>Workers that must agree before a rule fires, or null for the global default.</summary>
+    public Quorum? Quorum { get; private set; }
+
     /// <summary>Disabled checks are kept but not scheduled.</summary>
     public bool Enabled { get; private set; }
 
@@ -86,6 +92,13 @@ public sealed class Check : Entity
     public void SetWebhookTokenHash(string hash)
     {
         WebhookTokenHash = hash;
+    }
+
+    /// <summary>Sets which workers may run the check and how many must agree.</summary>
+    public void PlaceOn(TagSelector workerSelector, Quorum? quorum)
+    {
+        WorkerSelector = workerSelector;
+        Quorum = quorum;
     }
 
     /// <summary>Stops scheduling this check.</summary>
