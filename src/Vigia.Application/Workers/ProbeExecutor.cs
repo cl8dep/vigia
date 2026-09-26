@@ -5,16 +5,16 @@ using Vigia.Application.Plugins;
 using Vigia.Application.Webhooks;
 using Vigia.Plugins;
 
-namespace Vigia.Application.Agents;
+namespace Vigia.Application.Workers;
 
 /// <summary>
 /// <see cref="IProbeExecutor"/> that runs loaded check plugins with a timeout and error isolation.
 /// </summary>
 /// <param name="registry">Loaded plugins.</param>
 /// <param name="context">Host services shared by all probes.</param>
-/// <param name="options">Agent settings.</param>
-/// <param name="receipts">Webhook receipts; null on remote agents, where they do not exist.</param>
-public sealed class ProbeExecutor(IPluginRegistry registry, ICheckContext context, IOptions<AgentOptions> options, IWebhookReceiptStore? receipts = null)
+/// <param name="options">Worker settings.</param>
+/// <param name="receipts">Webhook receipts; null on remote workers, where they do not exist.</param>
+public sealed class ProbeExecutor(IPluginRegistry registry, ICheckContext context, IOptions<WorkerOptions> options, IWebhookReceiptStore? receipts = null)
     : IProbeExecutor
 {
     /// <inheritdoc />

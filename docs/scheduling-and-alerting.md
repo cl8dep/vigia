@@ -38,10 +38,10 @@ Relevant files: `Infrastructure/Jobs/CheckSchedulerService.cs`, `Infrastructure/
 
 | # | Piro | Problem | Vigia |
 |---|---|---|---|
-| 1 | The control plane fires every probe (Quartz) and pushes it to workers | Workers cannot run without the API; contradicts agent degraded mode | Agents schedule locally from their cached assignments. The control plane only assigns. The built-in agent uses the same runtime |
-| 2 | Quartz with a Postgres job store, one job + cron trigger per check | Remote agents have no database, so Quartz there loses persistence and clustering (its main strengths); misfire catch-up is useless for probes | Own scheduler inside the agent runtime: one loop over a priority queue ordered by next run, bounded concurrency, jitter. See "Why not Quartz for probes" |
-| 3 | Data point timestamps truncated to the minute | Checks faster than 1/min overwrite each other; cycles are artificial | Exact timestamps. Quorum uses the latest result per agent within a freshness window |
-| 4 | Multi-region batch aggregated in memory with a fixed 60s timeout | Lost on restart; slow agents always wait for the timeout | Quorum computed from stored results on each ingest; no in-memory batches |
+| 1 | The control plane fires every probe (Quartz) and pushes it to workers | Workers cannot run without the API; contradicts worker degraded mode | Workers schedule locally from their cached assignments. The control plane only assigns. The built-in worker uses the same runtime |
+| 2 | Quartz with a Postgres job store, one job + cron trigger per check | Remote workers have no database, so Quartz there loses persistence and clustering (its main strengths); misfire catch-up is useless for probes | Own scheduler inside the worker runtime: one loop over a priority queue ordered by next run, bounded concurrency, jitter. See "Why not Quartz for probes" |
+| 3 | Data point timestamps truncated to the minute | Checks faster than 1/min overwrite each other; cycles are artificial | Exact timestamps. Quorum uses the latest result per worker within a freshness window |
+| 4 | Multi-region batch aggregated in memory with a fixed 60s timeout | Lost on restart; slow workers always wait for the timeout | Quorum computed from stored results on each ingest; no in-memory batches |
 | 5 | Check status change goes through an in-memory `Channel` | Lost on crash; service status can go stale | Status recomputation is triggered through the outbox, like notifications |
 | 6 | `IsAlerting` stored on `AlertConfig` | Mixes rule config and runtime state; cannot work for a rule that targets many checks by selector | State lives on the alert, keyed by `(rule, check)` |
 | 7 | Alert fingerprint = normalized message | A new error text ("timeout" -> "connection refused") resolves the alert and opens a new one: re-paging and noise | Fingerprint = rule + check (+ source labels for inbound). The message is an attribute that updates |
@@ -50,7 +50,7 @@ Relevant files: `Infrastructure/Jobs/CheckSchedulerService.cs`, `Infrastructure/
 
 ## Vigia design
 
-### Agent runtime (shared by built-in and remote agents)
+### Worker runtime (shared by built-in and remote workers)
 
 ```
 AssignmentSource ──> AgentScheduler ──> ProbeExecutor ──> ResultSink
@@ -58,35 +58,35 @@ AssignmentSource ──> AgentScheduler ──> ProbeExecutor ──> ResultSink
   SignalR/HTTPS)       jitter, no overlap)  error isolation)     remote: HTTPS batch + local buffer)
 ```
 
-- `AssignmentSource` for the built-in agent reads enabled checks from the DB and reacts to changes; for remote agents it is the protocol in [architecture.md](architecture.md).
-- `AgentScheduler` is a single loop over a `PriorityQueue` keyed by next run time. It dispatches to a bounded pool (for example 50 concurrent probes per agent), adds jitter, never runs two probes of the same check at once, and a slow probe skips the next tick instead of piling up.
+- `AssignmentSource` for the built-in worker reads enabled checks from the DB and reacts to changes; for remote workers it is the protocol in [architecture.md](architecture.md).
+- `AgentScheduler` is a single loop over a `PriorityQueue` keyed by next run time. It dispatches to a bounded pool (for example 50 concurrent probes per worker), adds jitter, never runs two probes of the same check at once, and a slow probe skips the next tick instead of piling up.
 - `ProbeExecutor` is what `ProbeCheckHandler` does today, moved to one place.
 
 ### Storage
 
 | Table | Content |
 |---|---|
-| `results` | One row per probe: check, agent, outcome, measurements (`jsonb`), message, duration, `observed_at` (exact). Indexed by `(check_id, observed_at desc)` |
-| `result_rollups` | Per check, agent and hour: counts by outcome, latency avg / p95 / max |
-| `check_states` | Derived cache per check: current outcome, since when, latest result per agent. Recomputed on ingest |
+| `results` | One row per probe: check, worker, outcome, measurements (`jsonb`), message, duration, `observed_at` (exact). Indexed by `(check_id, observed_at desc)` |
+| `result_rollups` | Per check, worker and hour: counts by outcome, latency avg / p95 / max |
+| `check_states` | Derived cache per check: current outcome, since when, latest result per worker. Recomputed on ingest |
 
 ### Evaluation on ingest
 
 1. Store the result.
-2. Recompute the check state: latest result per assigned agent within `2 x interval`; apply quorum (`N` or `%`).
+2. Recompute the check state: latest result per assigned worker within `2 x interval`; apply quorum (`N` or `%`).
 3. For each rule that targets the check (by id or selector): count consecutive evaluations meeting the condition; fire after `for`, recover after `recover-after`.
 4. Alert changes and check state changes are written to the outbox in the same transaction.
 5. Outbox workers deliver notifications and recompute service status.
 
 ### No-data reasons
 
-A check with no fresh result from enough agents is `unknown`, with a reason: `no-agent` (nothing matches the selector), `agents-offline` (matching agents disconnected), `stale` (agents connected but not reporting). Never `down`.
+A check with no fresh result from enough workers is `unknown`, with a reason: `no-worker` (nothing matches the selector), `workers-offline` (matching workers disconnected), `stale` (workers connected but not reporting). Never `down`.
 
 ## Why not Quartz for probes
 
 Quartz itself supports second-level schedules and clustering; Piro's minute granularity and single replica are Piro's choices (standard 5-field cron, timestamp truncation, clustering disabled on purpose). The reason not to use it for probes is where scheduling runs:
 
-- Probes are scheduled by agents, and remote agents have no database. Quartz would run on its RAM store there, without persistence or clustering.
+- Probes are scheduled by workers, and remote workers have no database. Quartz would run on its RAM store there, without persistence or clustering.
 - Missed probe ticks must be skipped, not caught up. Quartz misfire handling is built for the opposite.
 - Thousands of checks that change often would mean one job + trigger per check and constant rescheduling. A priority queue handles that in memory with no dependency.
 
@@ -100,4 +100,4 @@ Escalation timers are not scheduled jobs: they are derived from DB state (alert 
 
 - Rules and alerts are built. Evaluation runs in `ResultIngestor` on every result, in the same transaction as the result.
 - Ingestion is serialized per check with `pg_advisory_xact_lock`, so concurrent results for one check never race; different checks ingest in parallel. Alerts also carry Postgres `xmin` as an optimistic concurrency token, and a partial unique index guarantees one firing alert per rule and check.
-- Not yet: quorum across agents (every result counts until remote agents exist), `check_states`, and writing alert changes to a notification outbox (comes with notifiers).
+- Not yet: quorum across workers (every result counts until remote workers exist), `check_states`, and writing alert changes to a notification outbox (comes with notifiers).

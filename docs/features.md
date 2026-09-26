@@ -7,9 +7,9 @@ Phases are a draft. Every item below is a plugin or uses the plugin model unless
 ### Monitoring
 - Check plugins: HTTP, TCP, DNS, TLS certificate, ping, heartbeat (inbound).
 - DNS done properly: query multiple resolvers (authoritative, public, internal) and compare, expected-record drift detection, domain expiry.
-- Distributed agents with autonomous degraded mode (see [architecture.md](architecture.md)).
-- Agent selection by labels (`region=eu`, `network=flystern-vpc`).
-- Quorum: a check is down only when N of M agents agree.
+- Distributed workers with autonomous degraded mode (see [architecture.md](architecture.md)).
+- Worker selection by labels (`region=eu`, `network=flystern-vpc`).
+- Quorum: a check is down only when N of M workers agree.
 
 ### Alerts
 - Inbound source plugins: Prometheus Alertmanager, Grafana, generic webhook.
@@ -29,12 +29,12 @@ Phases are a draft. Every item below is a plugin or uses the plugin model unless
 - Single binary, SQLite or Postgres.
 - YAML config with `plan` / `apply`.
 - REST API.
-- Labels on every entity (services, checks, agents, alerts).
+- Labels on every entity (services, checks, workers, alerts).
 
 ## v1: AI layer
 
-- On alert or incident, an agent gathers context through context provider plugins (recent deploys, commits, logs, metrics, related checks) and posts a summary citing evidence.
-- Outside-in vs inside-out comparison fed to the agent ("fails from public regions, passes from inside the VPC").
+- On alert or incident, an investigation agent gathers context through context provider plugins (recent deploys, commits, logs, metrics, related checks) and posts a summary citing evidence.
+- Outside-in vs inside-out comparison fed to the investigation agent ("fails from public regions, passes from inside the VPC").
 - AI backend plugins: Ollama, OpenAI-compatible, Anthropic.
 - PII redaction before any data reaches the LLM.
 - Read-only tools exposed over MCP.

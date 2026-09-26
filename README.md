@@ -2,7 +2,7 @@
 
 Self-hosted monitoring, on-call and AI-assisted incident investigation. Working name.
 
-> **Status: early development.** The checks API, plugin system, built-in agent, result storage, rules and alerts work. Notifications, on-call, remote agents and the AI layer are designed but not built yet. See [docs/](docs/).
+> **Status: early development.** The checks API, plugin system, built-in worker, result storage, rules and alerts work. Notifications, on-call, remote workers and the AI layer are designed but not built yet. See [docs/](docs/).
 
 ## What works today
 
@@ -20,7 +20,7 @@ Self-hosted monitoring, on-call and AI-assisted incident investigation. Working 
 
   Ping on Linux needs `CAP_NET_RAW` or unprivileged ICMP (`net.ipv4.ping_group_range`).
 - **Checks API.** Create, read, update, delete, validate config without saving, probe on demand.
-- **Built-in agent.** Probes every enabled check on its interval with bounded concurrency, jitter and no overlapping probes. Emits metrics on meter `Vigia.Agent`.
+- **Built-in worker.** Probes every enabled check on its interval with bounded concurrency, jitter and no overlapping probes. Emits metrics on meter `Vigia.Worker`.
 - **Results.** Every probe is stored with exact timestamps. Hourly rollups keep per-dimension min / avg / max / p95. Raw results are kept 14 days, rollups 400 days.
 - **Rules and alerts.** A rule targets one check or a label selector (`plugin` matches the plugin id) and fires on `outcome: down` or a dimension `above` / `below` a threshold, after `for` consecutive results; it resolves after `recoverAfter`. Rules are additive. One firing alert per rule and check: new results update it (message, occurrences) instead of opening another. Error results neither fire nor recover. Results and alert changes are saved in one transaction, serialized per check.
 - **Auth.** Email and password with bearer and refresh tokens. Only the first user can sign up unless `Auth:OpenSignUp` is on.
@@ -86,7 +86,7 @@ OpenAPI document at `/openapi/v1.json`.
 | `Database` | `MigrateOnStartup` | `true` |
 | `Plugins` | `Path` | `plugins` |
 | `Auth` | `OpenSignUp` | `false` |
-| `Agent` | `BuiltInEnabled`, `MaxConcurrency`, `RefreshInterval`, `InitialJitter`, `ProbeTimeout` | `true`, `50`, `10s`, `10s`, `30s` |
+| `Worker` | `BuiltInEnabled`, `MaxConcurrency`, `RefreshInterval`, `InitialJitter`, `ProbeTimeout` | `true`, `50`, `10s`, `10s`, `30s` |
 | `Retention` | `Enabled`, `RunInterval`, `RawResults`, `Rollups`, `RollupLookback` | `true`, `1h`, `14d`, `400d`, `48h` |
 
 ## Writing a check plugin
@@ -147,7 +147,7 @@ Conventions are in [CLAUDE.md](CLAUDE.md): one type per file, XML docs, block-bo
 src/
   Vigia.Plugins.Abstractions   plugin SDK
   Vigia.Domain                 entities
-  Vigia.Application            use cases (Mediator), agent runtime
+  Vigia.Application            use cases (Mediator), worker runtime
   Vigia.Infrastructure         EF Core, Identity, plugin loading, background jobs
   Vigia.Api                    controllers, composition root
 plugins/                       built-in plugins

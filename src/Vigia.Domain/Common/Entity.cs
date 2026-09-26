@@ -36,7 +36,7 @@ public abstract class Entity
 
     public string Name { get; private set; } = string.Empty;
 
-    /// <summary>Free-form <c>key=value</c> labels used by selectors (routing, agent placement, investigation).</summary>
+    /// <summary>Free-form <c>key=value</c> labels used by selectors (routing, worker placement, investigation).</summary>
     public Dictionary<string, string> Labels { get; private set; } = [];
 
     /// <summary>Front end that owns this entity.</summary>

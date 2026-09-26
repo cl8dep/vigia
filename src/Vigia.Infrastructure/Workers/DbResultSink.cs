@@ -1,15 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Vigia.Application.Agents;
+using Vigia.Application.Workers;
 using Vigia.Application.Results;
 using Vigia.Infrastructure.Persistence;
 using Vigia.Infrastructure.Persistence.Configurations;
 
-namespace Vigia.Infrastructure.Agents;
+namespace Vigia.Infrastructure.Workers;
 
 /// <summary>
-/// Sends results from the built-in agent and webhooks through <see cref="ResultIngestor"/>, one transaction per
+/// Sends results from the built-in worker and webhooks through <see cref="ResultIngestor"/>, one transaction per
 /// result, serialized per check.
 /// </summary>
 public sealed class DbResultSink(IServiceScopeFactory scopes) : IResultSink

@@ -1,7 +1,7 @@
 namespace Vigia.Domain.Results;
 
 /// <summary>
-/// Hourly summary of one check's results from one agent. Kept much longer than raw results.
+/// Hourly summary of one check's results from one worker. Kept much longer than raw results.
 /// Written by the rollup job only.
 /// </summary>
 public sealed class CheckResultRollup
@@ -13,8 +13,8 @@ public sealed class CheckResultRollup
     /// <summary>Check the results belong to.</summary>
     public Guid CheckId { get; private set; }
 
-    /// <summary>Agent that produced the results.</summary>
-    public string Agent { get; private set; } = string.Empty;
+    /// <summary>Worker that produced the results.</summary>
+    public string Worker { get; private set; } = string.Empty;
 
     /// <summary>Start of the hour (UTC).</summary>
     public DateTimeOffset HourStart { get; private set; }

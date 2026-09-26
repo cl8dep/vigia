@@ -1,4 +1,4 @@
-using Vigia.Application.Agents;
+using Vigia.Application.Workers;
 
 namespace Vigia.IntegrationTests.Support;
 

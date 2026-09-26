@@ -57,8 +57,8 @@ public sealed class VigiaApiFactory : WebApplicationFactory<Program>, IAsyncLife
         // Tests create many users; the closed default is covered by AuthApiTests.
         builder.UseSetting("Auth:OpenSignUp", "true");
 
-        // Background probing is off for API tests; BuiltInAgentTests turns it on explicitly.
-        builder.UseSetting("Agent:BuiltInEnabled", "false");
+        // Background probing is off for API tests; BuiltInWorkerTests turns it on explicitly.
+        builder.UseSetting("Worker:BuiltInEnabled", "false");
         builder.UseSetting("Logging:LogLevel:Microsoft.EntityFrameworkCore", "Warning");
 
         // Tests call ResultMaintenance directly so runs are deterministic.

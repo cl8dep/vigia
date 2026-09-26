@@ -1,7 +1,7 @@
-namespace Vigia.Application.Agents;
+namespace Vigia.Application.Workers;
 
 /// <summary>
-/// Scheduling state of one assignment inside <see cref="AgentScheduler"/>.
+/// Scheduling state of one assignment inside <see cref="WorkerScheduler"/>.
 /// </summary>
 /// <param name="assignment">Current assignment.</param>
 public sealed class ScheduledCheck(CheckAssignment assignment)

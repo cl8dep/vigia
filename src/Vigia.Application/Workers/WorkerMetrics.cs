@@ -1,14 +1,14 @@
 using System.Diagnostics.Metrics;
 
-namespace Vigia.Application.Agents;
+namespace Vigia.Application.Workers;
 
 /// <summary>
-/// Agent runtime metrics (meter <c>Vigia.Agent</c>). Tell whether an agent keeps up with its checks.
+/// Worker runtime metrics (meter <c>Vigia.Worker</c>). Tell whether a worker keeps up with its checks.
 /// </summary>
-public sealed class AgentMetrics
+public sealed class WorkerMetrics
 {
     /// <summary>Meter name, for exporters and listeners.</summary>
-    public const string MeterName = "Vigia.Agent";
+    public const string MeterName = "Vigia.Worker";
 
     private readonly Counter<long> _started;
     private readonly Counter<long> _skipped;
@@ -16,16 +16,16 @@ public sealed class AgentMetrics
     private readonly Histogram<double> _duration;
 
     /// <summary>Creates the instruments.</summary>
-    public AgentMetrics(IMeterFactory meters)
+    public WorkerMetrics(IMeterFactory meters)
     {
         var meter = meters.Create(MeterName);
-        _started = meter.CreateCounter<long>("vigia.agent.probes.started", description: "Probes started.");
+        _started = meter.CreateCounter<long>("vigia.worker.probes.started", description: "Probes started.");
         _skipped = meter.CreateCounter<long>(
-            "vigia.agent.probes.skipped",
-            description: "Ticks skipped because the previous probe of the same check was still running or waiting. Sustained growth means the agent is overloaded.");
+            "vigia.worker.probes.skipped",
+            description: "Ticks skipped because the previous probe of the same check was still running or waiting. Sustained growth means the worker is overloaded.");
         _slotWait = meter.CreateHistogram<double>(
-            "vigia.agent.probes.slot_wait", unit: "ms", description: "Time a due probe waited for a free concurrency slot.");
-        _duration = meter.CreateHistogram<double>("vigia.agent.probes.duration", unit: "ms", description: "Probe duration.");
+            "vigia.worker.probes.slot_wait", unit: "ms", description: "Time a due probe waited for a free concurrency slot.");
+        _duration = meter.CreateHistogram<double>("vigia.worker.probes.duration", unit: "ms", description: "Probe duration.");
     }
 
     /// <summary>A probe started.</summary>

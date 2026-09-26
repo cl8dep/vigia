@@ -9,10 +9,10 @@ using Vigia.IntegrationTests.Support;
 namespace Vigia.IntegrationTests.Load;
 
 /// <summary>
-/// The built-in agent with many real HTTP checks. Explicit: slow, run on demand.
+/// The built-in worker with many real HTTP checks. Explicit: slow, run on demand.
 /// </summary>
 [Collection(ApiCollection.Name)]
-public sealed class BuiltInAgentLoadTests(VigiaApiFactory factory)
+public sealed class BuiltInWorkerLoadTests(VigiaApiFactory factory)
 {
     private const int CheckCount = 200;
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(10);
@@ -44,8 +44,8 @@ public sealed class BuiltInAgentLoadTests(VigiaApiFactory factory)
         var started = DateTimeOffset.UtcNow;
         await using (var withAgent = factory.WithWebHostBuilder(b =>
         {
-            b.UseSetting("Agent:BuiltInEnabled", "true");
-            b.UseSetting("Agent:RefreshInterval", "00:00:01");
+            b.UseSetting("Worker:BuiltInEnabled", "true");
+            b.UseSetting("Worker:RefreshInterval", "00:00:01");
         }))
         {
             withAgent.CreateClient();

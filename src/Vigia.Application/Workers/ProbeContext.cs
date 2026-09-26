@@ -2,7 +2,7 @@ using Vigia.Application.Plugins;
 using Vigia.Application.Webhooks;
 using Vigia.Plugins;
 
-namespace Vigia.Application.Agents;
+namespace Vigia.Application.Workers;
 
 /// <summary>
 /// <see cref="ICheckContext"/> for one probe of one check. Adds the capability-gated services the plugin declared.

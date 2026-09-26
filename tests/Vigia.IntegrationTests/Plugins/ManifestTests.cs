@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Options;
-using Vigia.Application.Agents;
+using Vigia.Application.Workers;
 using Vigia.Application.Plugins;
 using Vigia.Application.Plugins.Manifest;
 using Vigia.Infrastructure.Plugins;
@@ -157,7 +157,7 @@ public sealed class ManifestTests
     private static async Task<ProbeResult> ProbeAsync(PluginManifest manifest)
     {
         var plugin = CheckPluginBuilder.Build(manifest, Assembly);
-        var executor = new ProbeExecutor(new PluginRegistry([plugin], []), new NoServicesContext(), Options.Create(new AgentOptions()));
+        var executor = new ProbeExecutor(new PluginRegistry([plugin], []), new NoServicesContext(), Options.Create(new WorkerOptions()));
         var record = await executor.ExecuteAsync(
             new CheckAssignment(Guid.NewGuid(), "fake", plugin.Id, "{}", TimeSpan.FromMinutes(1), DateTimeOffset.UnixEpoch),
             TestContext.Current.CancellationToken);

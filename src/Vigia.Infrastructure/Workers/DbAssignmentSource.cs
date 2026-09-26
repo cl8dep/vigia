@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Vigia.Application.Agents;
+using Vigia.Application.Workers;
 using Vigia.Infrastructure.Persistence;
 
-namespace Vigia.Infrastructure.Agents;
+namespace Vigia.Infrastructure.Workers;
 
 /// <summary>
-/// Assignments for the built-in agent: every enabled check, read straight from the database.
+/// Assignments for the built-in worker: every enabled check, read straight from the database.
 /// </summary>
 public sealed class DbAssignmentSource(IServiceScopeFactory scopes) : IAssignmentSource
 {

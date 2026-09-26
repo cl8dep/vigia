@@ -1,14 +1,14 @@
 using System.Text.Json;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
-using Vigia.Application.Agents;
+using Vigia.Application.Workers;
 using Vigia.Application.Common.Exceptions;
 using Vigia.Application.Common.Interfaces;
 
 namespace Vigia.Application.Checks.ProbeCheck;
 
 /// <summary>
-/// Handles <see cref="ProbeCheckCommand"/> through the same <see cref="IProbeExecutor"/> the agents use.
+/// Handles <see cref="ProbeCheckCommand"/> through the same <see cref="IProbeExecutor"/> the workers use.
 /// </summary>
 public sealed class ProbeCheckHandler(IAppDbContext db, IProbeExecutor executor) : ICommandHandler<ProbeCheckCommand, ProbeResultDto>
 {

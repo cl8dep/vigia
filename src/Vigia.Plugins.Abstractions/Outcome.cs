@@ -11,6 +11,6 @@ public enum Outcome
     /// <summary>The target failed the check.</summary>
     Down,
 
-    /// <summary>The probe itself could not run (bad config, agent problem). Says nothing about the target.</summary>
+    /// <summary>The probe itself could not run (bad config, worker problem). Says nothing about the target.</summary>
     Error,
 }

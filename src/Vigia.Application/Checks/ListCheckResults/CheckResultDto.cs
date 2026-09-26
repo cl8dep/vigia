@@ -4,7 +4,7 @@ namespace Vigia.Application.Checks.ListCheckResults;
 /// A stored probe result as exposed by the API.
 /// </summary>
 /// <param name="Id">Result id.</param>
-/// <param name="Agent">Agent that ran the probe.</param>
+/// <param name="Worker">Worker that ran the probe.</param>
 /// <param name="Outcome"><c>up</c>, <c>down</c> or <c>error</c>.</param>
 /// <param name="Measurements">Dimension name to value.</param>
 /// <param name="Message">Why the target is down or the probe failed.</param>
@@ -12,7 +12,7 @@ namespace Vigia.Application.Checks.ListCheckResults;
 /// <param name="ObservedAt">When the probe started (UTC).</param>
 public sealed record CheckResultDto(
     Guid Id,
-    string Agent,
+    string Worker,
     string Outcome,
     IReadOnlyDictionary<string, double> Measurements,
     string? Message,

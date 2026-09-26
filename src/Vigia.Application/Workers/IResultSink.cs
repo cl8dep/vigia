@@ -1,7 +1,7 @@
-namespace Vigia.Application.Agents;
+namespace Vigia.Application.Workers;
 
 /// <summary>
-/// Where an agent sends finished probes: the database for the built-in agent, the control plane for remote agents.
+/// Where a worker sends finished probes: the database for the built-in worker, the control plane for remote workers.
 /// </summary>
 public interface IResultSink
 {

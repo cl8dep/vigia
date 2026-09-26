@@ -31,7 +31,7 @@ public sealed class ListCheckResultsHandler(IAppDbContext db) : IQueryHandler<Li
         return results
             .Select(r => new CheckResultDto(
                 r.Id,
-                r.Agent,
+                r.Worker,
                 JsonNamingPolicy.CamelCase.ConvertName(r.Outcome.ToString()),
                 r.Measurements,
                 r.Message,

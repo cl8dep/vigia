@@ -31,11 +31,11 @@ public sealed class ListCheckRollupsHandler(IAppDbContext db, TimeProvider time)
         var rollups = await db.CheckResultRollups.AsNoTracking()
             .Where(r => r.CheckId == checkId && r.HourStart >= from && r.HourStart < to)
             .OrderBy(r => r.HourStart)
-            .ThenBy(r => r.Agent)
+            .ThenBy(r => r.Worker)
             .ToListAsync(ct);
 
         return rollups
-            .Select(r => new CheckRollupDto(r.Agent, r.HourStart, r.Up, r.Down, r.Error, r.Dimensions))
+            .Select(r => new CheckRollupDto(r.Worker, r.HourStart, r.Up, r.Down, r.Error, r.Dimensions))
             .ToList();
     }
 }

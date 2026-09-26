@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using Vigia.Application.Agents;
+using Vigia.Application.Workers;
 using Vigia.Plugins;
 
 namespace Vigia.IntegrationTests.Support;

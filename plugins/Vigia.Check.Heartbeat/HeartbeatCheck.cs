@@ -7,7 +7,7 @@ namespace Vigia.Check.Heartbeat;
 /// and the check goes down when no ping arrives within <c>every + grace</c>.
 /// </summary>
 /// <remarks>
-/// Reads webhook receipts, which live on the control plane, so heartbeat checks run on the built-in agent.
+/// Reads webhook receipts, which live on the control plane, so heartbeat checks run on the built-in worker.
 /// </remarks>
 public sealed class HeartbeatCheck : Check<HeartbeatCheckConfig>
 {

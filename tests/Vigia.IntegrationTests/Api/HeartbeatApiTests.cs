@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Vigia.Application.Agents;
+using Vigia.Application.Workers;
 using Vigia.Domain.Checks;
 using Vigia.Infrastructure.Persistence;
 using Vigia.IntegrationTests.Support;
@@ -50,7 +50,7 @@ public sealed class HeartbeatApiTests(VigiaApiFactory factory)
         Assert.Equal(HttpStatusCode.NoContent, headerResponse.StatusCode);
 
         var results = await client.GetFromJsonAsync<JsonElement[]>($"/api/v1/checks/{slug}/results", Ct);
-        Assert.Contains(results!, r => r.GetProperty("agent").GetString() == "webhook" && r.GetProperty("outcome").GetString() == "up");
+        Assert.Contains(results!, r => r.GetProperty("worker").GetString() == "webhook" && r.GetProperty("outcome").GetString() == "up");
         Assert.Equal("up", (await ProbeAsync(client, slug)).GetProperty("outcome").GetString());
 
         using var scope = factory.Services.CreateScope();
@@ -131,7 +131,7 @@ public sealed class HeartbeatApiTests(VigiaApiFactory factory)
             check = await db.Checks.AsNoTracking().SingleAsync(c => c.Slug == slug, Ct);
         }
 
-        // Same path as the built-in agent: probe, then ingest.
+        // Same path as the built-in worker: probe, then ingest.
         var record = await factory.Services.GetRequiredService<IProbeExecutor>().ExecuteAsync(CheckAssignment.From(check), Ct);
         await factory.Services.GetRequiredService<IResultSink>().WriteAsync(record, Ct);
 

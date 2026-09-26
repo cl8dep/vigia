@@ -22,7 +22,7 @@ public sealed class RetentionOptions
 
     /// <summary>
     /// Hours before the latest rollup that are recomputed on every run, so results that arrive late
-    /// (remote agents uploading after degraded mode) still land in their hour.
+    /// (remote workers uploading after degraded mode) still land in their hour.
     /// </summary>
     public TimeSpan RollupLookback { get; set; } = TimeSpan.FromHours(48);
 

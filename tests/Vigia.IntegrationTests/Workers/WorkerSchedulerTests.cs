@@ -4,15 +4,15 @@ using Microsoft.Extensions.Diagnostics.Metrics.Testing;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
-using Vigia.Application.Agents;
+using Vigia.Application.Workers;
 using Vigia.IntegrationTests.Support;
 
-namespace Vigia.IntegrationTests.Agents;
+namespace Vigia.IntegrationTests.Workers;
 
 /// <summary>
-/// Scheduling behavior of <see cref="AgentScheduler"/> with simulated time.
+/// Scheduling behavior of <see cref="WorkerScheduler"/> with simulated time.
 /// </summary>
-public sealed class AgentSchedulerTests : IAsyncDisposable
+public sealed class WorkerSchedulerTests : IAsyncDisposable
 {
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(10);
 
@@ -33,10 +33,11 @@ public sealed class AgentSchedulerTests : IAsyncDisposable
         await Eventually.TrueAsync(() => _executor.Started(check.CheckId) == 1);
         _time.Advance(TimeSpan.FromSeconds(5));
         await Eventually.StillTrueAsync(() => _executor.Started(check.CheckId) == 1);
-        _time.Advance(TimeSpan.FromSeconds(5));
-        await Eventually.TrueAsync(() => _executor.Started(check.CheckId) == 2);
-        _time.Advance(Interval);
-        await Eventually.TrueAsync(() => _executor.Started(check.CheckId) == 3);
+
+        await AdvanceUntilAsync(() => _executor.Started(check.CheckId) >= 2);
+        Assert.Equal(2, _executor.Started(check.CheckId));
+        await AdvanceUntilAsync(() => _executor.Started(check.CheckId) >= 3);
+        Assert.Equal(3, _executor.Started(check.CheckId));
     }
 
     [Fact]
@@ -61,22 +62,18 @@ public sealed class AgentSchedulerTests : IAsyncDisposable
         var check = Assignment("slow");
         _source.Set(check);
         _executor.Close();
-        using var skipped = new MetricCollector<long>(_services.GetRequiredService<IMeterFactory>(), AgentMetrics.MeterName, "vigia.agent.probes.skipped");
+        using var skipped = new MetricCollector<long>(_services.GetRequiredService<IMeterFactory>(), WorkerMetrics.MeterName, "vigia.worker.probes.skipped");
         Start();
 
         await Eventually.TrueAsync(() => _executor.Started(check.CheckId) == 1);
         _time.Advance(Interval);
         _time.Advance(Interval);
         await Eventually.StillTrueAsync(() => _executor.Started(check.CheckId) == 1);
-        await Eventually.TrueAsync(() => skipped.GetMeasurementSnapshot().EvaluateAsCounter() >= 2);
+        await AdvanceUntilAsync(() => skipped.GetMeasurementSnapshot().EvaluateAsCounter() >= 2);
+        Assert.Equal(1, _executor.Started(check.CheckId));
 
-        // The in-flight probe finishes asynchronously; keep ticking until the scheduler sees it free.
         _executor.Open();
-        await Eventually.TrueAsync(() =>
-        {
-            _time.Advance(Interval);
-            return _executor.Started(check.CheckId) >= 2;
-        });
+        await AdvanceUntilAsync(() => _executor.Started(check.CheckId) >= 2);
     }
 
     [Fact]
@@ -89,9 +86,8 @@ public sealed class AgentSchedulerTests : IAsyncDisposable
 
         await Eventually.TrueAsync(() => _executor.Started(removed.CheckId) == 1);
         _source.Set(added);
-        _time.Advance(Interval);
 
-        await Eventually.TrueAsync(() => _executor.Started(added.CheckId) == 1);
+        await AdvanceUntilAsync(() => _executor.Started(added.CheckId) >= 1);
         await Eventually.StillTrueAsync(() => _executor.Started(removed.CheckId) == 1);
     }
 
@@ -104,10 +100,7 @@ public sealed class AgentSchedulerTests : IAsyncDisposable
 
         await Eventually.TrueAsync(() => _executor.Started(check.CheckId) == 1);
         _source.Fail = true;
-        _time.Advance(Interval);
-        await Eventually.TrueAsync(() => _executor.Started(check.CheckId) == 2);
-        _time.Advance(Interval);
-        await Eventually.TrueAsync(() => _executor.Started(check.CheckId) == 3);
+        await AdvanceUntilAsync(() => _executor.Started(check.CheckId) >= 3);
     }
 
     /// <inheritdoc />
@@ -120,6 +113,20 @@ public sealed class AgentSchedulerTests : IAsyncDisposable
         await _services.DisposeAsync();
     }
 
+    /// <summary>
+    /// Moves simulated time forward in small steps until <paramref name="condition"/> holds. A single large jump can
+    /// land between the scheduler computing its delay and registering the timer, leaving the timer one jump late;
+    /// small steps make the outcome independent of that interleaving.
+    /// </summary>
+    private Task AdvanceUntilAsync(Func<bool> condition)
+    {
+        return Eventually.TrueAsync(() =>
+        {
+            _time.Advance(TimeSpan.FromMilliseconds(500));
+            return condition();
+        });
+    }
+
     private static CheckAssignment Assignment(string slug)
     {
         return new CheckAssignment(Guid.CreateVersion7(), slug, "test", "{}", Interval, DateTimeOffset.UnixEpoch);
@@ -127,14 +134,14 @@ public sealed class AgentSchedulerTests : IAsyncDisposable
 
     private void Start(int maxConcurrency = 50, TimeSpan? refresh = null)
     {
-        var options = Options.Create(new AgentOptions
+        var options = Options.Create(new WorkerOptions
         {
             MaxConcurrency = maxConcurrency,
             RefreshInterval = refresh ?? TimeSpan.FromHours(1),
             InitialJitter = TimeSpan.Zero,
         });
-        var metrics = new AgentMetrics(_services.GetRequiredService<IMeterFactory>());
-        var scheduler = new AgentScheduler(_source, _executor, new NullResultSink(), metrics, options, _time, NullLogger<AgentScheduler>.Instance);
+        var metrics = new WorkerMetrics(_services.GetRequiredService<IMeterFactory>());
+        var scheduler = new WorkerScheduler(_source, _executor, new NullResultSink(), metrics, options, _time, NullLogger<WorkerScheduler>.Instance);
         _run = Task.Run(() => scheduler.RunAsync(_stop.Token));
     }
 }

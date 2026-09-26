@@ -14,7 +14,7 @@ namespace Vigia.Application.Rules;
 /// </summary>
 /// <remarks>
 /// Error results say nothing about the target, so they neither fire nor recover. Results missing a rule's
-/// dimension are skipped for that rule. Quorum across agents comes with remote agents; today every result counts.
+/// dimension are skipped for that rule. Quorum across workers comes with remote workers; today every result counts.
 /// </remarks>
 public sealed class RuleEvaluator(IAppDbContext db, IPluginRegistry registry)
 {

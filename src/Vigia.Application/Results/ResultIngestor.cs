@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Vigia.Application.Agents;
+using Vigia.Application.Workers;
 using Vigia.Application.Common.Interfaces;
 using Vigia.Application.Rules;
 using Vigia.Domain.Results;
@@ -24,7 +24,7 @@ public sealed class ResultIngestor(IAppDbContext db, RuleEvaluator rules)
         var result = new CheckResult(
             record.Id,
             record.CheckId,
-            record.Agent,
+            record.Worker,
             Enum.Parse<ResultOutcome>(record.Outcome.ToString()),
             record.Measurements,
             record.Message,

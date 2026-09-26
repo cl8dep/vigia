@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Vigia.Application.Agents;
+using Vigia.Application.Workers;
 using Vigia.Infrastructure.Persistence;
 using Vigia.IntegrationTests.Support;
 using Vigia.Plugins;
@@ -11,7 +11,7 @@ using Vigia.Plugins;
 namespace Vigia.IntegrationTests.Api;
 
 /// <summary>
-/// Rules turning results into alerts, through the same ingestion path agents and webhooks use.
+/// Rules turning results into alerts, through the same ingestion path workers and webhooks use.
 /// </summary>
 [Collection(ApiCollection.Name)]
 public sealed class RulesAndAlertsTests(VigiaApiFactory factory)

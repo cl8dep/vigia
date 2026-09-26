@@ -7,7 +7,7 @@ namespace Vigia.Check.Ping;
 /// Sends ICMP echo requests. Down only when every request is lost; partial loss is reported as a dimension.
 /// </summary>
 /// <remarks>
-/// On Linux, ICMP needs the agent to run with <c>CAP_NET_RAW</c> or unprivileged ICMP sockets enabled
+/// On Linux, ICMP needs the worker to run with <c>CAP_NET_RAW</c> or unprivileged ICMP sockets enabled
 /// (<c>net.ipv4.ping_group_range</c>); otherwise .NET falls back to the <c>ping</c> binary if present.
 /// </remarks>
 public sealed class PingCheck : Check<PingCheckConfig>

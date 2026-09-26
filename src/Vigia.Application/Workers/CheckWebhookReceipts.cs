@@ -2,7 +2,7 @@ using Vigia.Application.Plugins;
 using Vigia.Application.Webhooks;
 using Vigia.Plugins;
 
-namespace Vigia.Application.Agents;
+namespace Vigia.Application.Workers;
 
 /// <summary>
 /// <see cref="IWebhookReceipts"/> bound to one check. Only answers for webhooks the plugin declares.

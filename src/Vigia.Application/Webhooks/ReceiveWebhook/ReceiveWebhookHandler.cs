@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
-using Vigia.Application.Agents;
+using Vigia.Application.Workers;
 using Vigia.Application.Common.Exceptions;
 using Vigia.Application.Common.Interfaces;
 using Vigia.Application.Plugins;

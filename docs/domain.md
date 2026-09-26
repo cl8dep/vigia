@@ -42,7 +42,7 @@ erDiagram
     SERVICE }o--o{ CHECK : "includes (ref or selector)"
     SERVICE ||--o{ DEPENDENCY : "depends on"
     CHECK ||--o{ RESULT : produces
-    AGENT ||--o{ RESULT : reports
+    WORKER ||--o{ RESULT : reports
     RULE }o--o{ CHECK : "targets (ref or selector)"
     SIGNAL }o--|| ALERT : "dedup into"
     ALERT }o--o| INCIDENT : "linked to"
@@ -80,8 +80,8 @@ createdAt, updatedAt   DateTimeOffset UTC
 ### Monitoring
 
 - **Check**: instance of a check plugin. `plugin`, `config` (validated by the plugin schema), `interval`, `agentSelector`, `quorum`.
-- **Agent**: registered agent. Labels (`region`, `network`), last seen, version, mode (`connected | degraded`).
-- **Result**: one probe from one agent. Outcome (`up | down | error`), dimensions, message, timestamp. Time-series storage, retention policy.
+- **Worker**: registered worker. Labels (`region`, `network`), last seen, version, mode (`connected | degraded`).
+- **Result**: one probe from one worker. Outcome (`up | down | error`), dimensions, message, timestamp. Time-series storage, retention policy.
 - **Rule**: condition over a dimension (`latency > 800ms for 3`), severity, targets a check or a selector.
 
 ### Alerting and response
@@ -105,7 +105,7 @@ createdAt, updatedAt   DateTimeOffset UTC
 ### AI
 
 - **Investigation**: run of the investigation agent for an alert or incident. Status, budget used, summary, ranked hypotheses.
-- **Evidence**: item cited by an investigation (log query, metric window, change, result diff between agents). Links back to its source.
+- **Evidence**: item cited by an investigation (log query, metric window, change, result diff between workers). Links back to its source.
 
 ### Status page
 
@@ -119,7 +119,7 @@ createdAt, updatedAt   DateTimeOffset UTC
 ## Status derivation
 
 ```
-check health   = quorum over latest results per agent
+check health   = quorum over latest results per worker
 service health = worst of included checks, then dependency propagation
 public status  = maintenance ? maintenance
                : manual override ? override

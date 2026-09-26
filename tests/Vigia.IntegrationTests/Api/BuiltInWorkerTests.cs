@@ -7,10 +7,10 @@ using Vigia.IntegrationTests.Support;
 namespace Vigia.IntegrationTests.Api;
 
 /// <summary>
-/// The built-in agent probes checks on its own and stores results in Postgres.
+/// The built-in worker probes checks on its own and stores results in Postgres.
 /// </summary>
 [Collection(ApiCollection.Name)]
-public sealed class BuiltInAgentTests(VigiaApiFactory factory)
+public sealed class BuiltInWorkerTests(VigiaApiFactory factory)
 {
     private static CancellationToken Ct
     {
@@ -22,7 +22,7 @@ public sealed class BuiltInAgentTests(VigiaApiFactory factory)
     {
         await using var target = await LocalHttpServer.StartAsync(Ct);
         var client = await factory.CreateAuthenticatedClientAsync(Ct);
-        var slug = $"agent-{Guid.NewGuid():N}"[..20];
+        var slug = $"worker-{Guid.NewGuid():N}"[..20];
         var create = await client.PostAsJsonAsync("/api/v1/checks", new
         {
             slug,
@@ -34,9 +34,9 @@ public sealed class BuiltInAgentTests(VigiaApiFactory factory)
 
         await using var withAgent = factory.WithWebHostBuilder(b =>
         {
-            b.UseSetting("Agent:BuiltInEnabled", "true");
-            b.UseSetting("Agent:RefreshInterval", "00:00:01");
-            b.UseSetting("Agent:InitialJitter", "00:00:00");
+            b.UseSetting("Worker:BuiltInEnabled", "true");
+            b.UseSetting("Worker:RefreshInterval", "00:00:01");
+            b.UseSetting("Worker:InitialJitter", "00:00:00");
         });
         withAgent.CreateClient();
 
@@ -49,7 +49,7 @@ public sealed class BuiltInAgentTests(VigiaApiFactory factory)
 
         var latest = results[0];
         Assert.Equal("up", latest.GetProperty("outcome").GetString());
-        Assert.Equal("builtin", latest.GetProperty("agent").GetString());
+        Assert.Equal("builtin", latest.GetProperty("worker").GetString());
         Assert.True(latest.GetProperty("measurements").TryGetProperty("latency", out _));
     }
 

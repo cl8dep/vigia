@@ -22,9 +22,9 @@ From the config record the host generates one JSON Schema, and everything else d
 
 | Kind | Runs on | Does |
 |---|---|---|
-| `Check` | Agent (or control plane in-process) | Probes a target, returns outcome + dimensions |
+| `Check` | Worker (or control plane in-process) | Probes a target, returns outcome + dimensions |
 | `Source` | Control plane | Receives inbound webhooks, normalizes to alerts |
-| `Notifier` | Control plane, and agents in degraded mode | Delivers personal or channel notifications |
+| `Notifier` | Control plane, and workers in degraded mode | Delivers personal or channel notifications |
 | `ContextProvider` | Control plane | Fetches context for investigation (deploys, logs, metrics). Exposed as an MCP tool |
 | `AiBackend` | Control plane | LLM provider (Ollama, OpenAI-compatible, Anthropic) |
 | `Publisher` | Control plane | Publishes the static status page (S3, Cloudflare Pages, folder) |
@@ -134,9 +134,9 @@ Code reports values by name: `new Measurement("days-to-expiry", 12.5)`. Alert ru
 
 ## Labels (entity attributes)
 
-Separate from C# attributes: every entity (service, check, agent, alert, user) carries `key=value` labels. Labels drive:
+Separate from C# attributes: every entity (service, check, worker, alert, user) carries `key=value` labels. Labels drive:
 
-- Which agents run a check (`network=flystern-vpc`).
+- Which workers run a check (`network=flystern-vpc`).
 - Which escalation policy an alert routes to (`team=payments`).
 - Which context providers the investigation uses (`repo=flystern/api`).
 - Filtering in UI and API.
@@ -159,7 +159,7 @@ plugins/
       ...
 ```
 
-Planned manifest additions: `sha256` / signature for distribution to agents, and `runsOn` for plugins that must stay on the control plane.
+Planned manifest additions: `sha256` / signature for distribution to workers, and `runsOn` for plugins that must stay on the control plane.
 
 ### Isolation
 
@@ -180,16 +180,16 @@ At startup the host, per plugin folder:
 
 A plugin that fails any step is disabled and reported in the UI, never crashes the host.
 
-### Distribution to agents
+### Distribution to workers
 
-Plugins are installed once, on the control plane. Agents do not need a manual install:
+Plugins are installed once, on the control plane. Workers do not need a manual install:
 
 1. A check assignment carries `plugin id + version + sha256`.
-2. If the agent does not have it, it downloads the package from the control plane.
-3. The agent verifies the hash (and signature, later) before loading.
+2. If the worker does not have it, it downloads the package from the control plane.
+3. The worker verifies the hash (and signature, later) before loading.
 4. Plugins are cached on disk, so degraded mode keeps working after a restart.
 
-Agents can restrict what they accept with an allowlist, for agents in sensitive networks.
+Workers can restrict what they accept with an allowlist, for workers in sensitive networks.
 
 ### Versioning
 
@@ -206,8 +206,8 @@ Agents can restrict what they accept with an allowlist, for agents in sensitive 
 
 ## Trimming / AOT
 
-Loading assemblies at runtime rules out Native AOT and trimming for both the control plane and agents: AOT cannot load assemblies, and trimming can remove framework types a plugin needs. Decision:
+Loading assemblies at runtime rules out Native AOT and trimming for both the control plane and workers: AOT cannot load assemblies, and trimming can remove framework types a plugin needs. Decision:
 
 - Framework-dependent, untrimmed, on a chiseled .NET runtime image.
 - Schemas are built by reflection at load time; no source generator needed.
-- Agent image size is dominated by the runtime (~100 MB). Acceptable for a Raspberry Pi; revisit only if it is a real problem.
+- Worker image size is dominated by the runtime (~100 MB). Acceptable for a Raspberry Pi; revisit only if it is a real problem.

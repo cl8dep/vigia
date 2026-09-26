@@ -6,9 +6,9 @@
 | 2 | License | Proprietary for now (all rights reserved); open-source choice (Apache 2.0, AGPL, MIT) deferred | Proprietary |
 | 3 | Start from scratch or reuse code | Scratch, fork Piro (AGPL), borrow ideas from Wachd (Apache) | Scratch, borrow ideas |
 | 4 | Where the control plane runs for Flystern | Same AWS infra, isolated cloud account / VPS, homelab | Isolated VPS |
-| 5 | ~~Agent to control plane transport~~ | Resolved: SignalR for control, HTTPS for data | - |
-| 6 | ~~Duplicate fallback alerts in degraded mode~~ | Resolved: no coordination, each agent notifies on transitions; reconciled on reconnect | - |
-| 7 | ~~Schema generation vs AOT for agents~~ | Resolved: runtime plugin loading rules out AOT; reflection at load time | - |
+| 5 | ~~Worker to control plane transport~~ | Resolved: SignalR for control, HTTPS for data | - |
+| 6 | ~~Duplicate fallback alerts in degraded mode~~ | Resolved: no coordination, each worker notifies on transitions; reconciled on reconnect | - |
+| 7 | ~~Schema generation vs AOT for workers~~ | Resolved: runtime plugin loading rules out AOT; reflection at load time | - |
 | 8 | Frontend stack | React SPA, Blazor, server-rendered | - |
 | 9 | First Flystern-specific check | Sabre availability, booking flow synthetic, DNS | - |
 | 10 | Is our own on-call worth building vs integrating PagerDuty-style tools | Build, integrate, both | Build (core value for small teams) |

@@ -69,8 +69,8 @@ integrations:
     plugin: vigia.source.alertmanager@1
     labels: { env: prod }
 
-agents:
-  # Agents enroll themselves; config only sets policy per label group.
+workers:
+  # Workers enroll themselves; config only sets policy per label group.
   prod:
     selector: { env: prod }
     fallback:
@@ -105,7 +105,7 @@ checks:
     plugin: vigia.check.http@1
     interval: 30s
     labels: { service: booking-api }
-    agents: { selector: { env: prod }, quorum: 2 }
+    workers: { selector: { env: prod }, quorum: 2 }
     config:
       url: https://api.flystern.example/health
       expected-status: [200]
@@ -115,7 +115,7 @@ checks:
     plugin: vigia.check.http@1
     interval: 30s
     labels: { service: booking-api, view: inside }
-    agents: { selector: { network: flystern-vpc } }
+    workers: { selector: { network: flystern-vpc } }
     config:
       url: http://booking-api.internal:8080/health
 
@@ -123,7 +123,7 @@ checks:
     plugin: vigia.check.http@1
     interval: 1m
     labels: { service: sabre }
-    agents: { selector: { network: flystern-vpc } }
+    workers: { selector: { network: flystern-vpc } }
     config:
       url: https://api.sabre.example/v1/ping
       headers:
@@ -133,7 +133,7 @@ checks:
     plugin: vigia.check.dns@1
     interval: 1m
     labels: { service: dns-flystern }
-    agents: { selector: { role: public-probe }, quorum: 50% }
+    workers: { selector: { role: public-probe }, quorum: 50% }
     config:
       host: api.flystern.example
       record-type: A
@@ -144,7 +144,7 @@ checks:
     plugin: vigia.check.tls@1
     interval: 1h
     labels: { service: booking-api }
-    agents: { selector: { role: public-probe }, quorum: 1 }
+    workers: { selector: { role: public-probe }, quorum: 1 }
     config:
       host: api.flystern.example
 
@@ -189,7 +189,7 @@ resource "vigia_check" "booking_api_health" {
   interval = "30s"
   labels   = { service = "booking-api" }
 
-  agents = {
+  workers = {
     selector = { env = "prod" }
     quorum   = 2
   }
@@ -241,7 +241,7 @@ Terraform asks the provider for its schema before the provider is configured, so
 Writing a real config exposed decisions the domain model did not cover yet:
 
 1. **Rules from several places.** A check can match several selector rules (`http-down` and `slow-api`). Decision: rules are additive; each produces its own alerts. No precedence, no merging.
-2. **Quorum as number or percentage.** With a selector, the number of matching agents changes over time. `quorum` accepts `2` or `50%`; default is majority.
+2. **Quorum as number or percentage.** With a selector, the number of matching workers changes over time. `quorum` accepts `2` or `50%`; default is majority.
 3. **External services route differently.** Paging someone at 3am for a Sabre outage is useless. External services get their own policy (`vendor-notify`), and the status page shows "degraded due to a provider".
 4. **Dependency-aware inhibition.** When `sabre` is down and `booking-api` fails because of it, the booking alert should be linked as a consequence and not escalate on its own. Similar to Alertmanager inhibition, but derived from the dependency graph instead of hand-written rules.
 5. **Service to checks direction.** Services select checks by label; checks carry `service: x`. One direction only, to avoid two sources of truth.

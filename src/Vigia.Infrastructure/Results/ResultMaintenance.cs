@@ -15,20 +15,20 @@ public sealed class ResultMaintenance(AppDbContext db, IOptions<RetentionOptions
 {
     private const string RollupSql = """
         WITH scoped AS (
-            SELECT check_id, agent, date_trunc('hour', observed_at, 'UTC') AS hour_start, outcome, measurements
+            SELECT check_id, worker, date_trunc('hour', observed_at, 'UTC') AS hour_start, outcome, measurements
             FROM check_results
             WHERE observed_at >= {0} AND observed_at < {1}
         ),
         counts AS (
-            SELECT check_id, agent, hour_start,
+            SELECT check_id, worker, hour_start,
                    count(*) FILTER (WHERE outcome = 'Up') AS up,
                    count(*) FILTER (WHERE outcome = 'Down') AS down,
                    count(*) FILTER (WHERE outcome = 'Error') AS error
             FROM scoped
-            GROUP BY check_id, agent, hour_start
+            GROUP BY check_id, worker, hour_start
         ),
         dims AS (
-            SELECT s.check_id, s.agent, s.hour_start, m.key,
+            SELECT s.check_id, s.worker, s.hour_start, m.key,
                    jsonb_build_object(
                        'Min', min(m.value::float8),
                        'Avg', avg(m.value::float8),
@@ -36,18 +36,18 @@ public sealed class ResultMaintenance(AppDbContext db, IOptions<RetentionOptions
                        'P95', percentile_cont(0.95) WITHIN GROUP (ORDER BY m.value::float8),
                        'Count', count(*)) AS stats
             FROM scoped s, jsonb_each_text(s.measurements) m
-            GROUP BY s.check_id, s.agent, s.hour_start, m.key
+            GROUP BY s.check_id, s.worker, s.hour_start, m.key
         ),
         dims_by_hour AS (
-            SELECT check_id, agent, hour_start, jsonb_object_agg(key, stats) AS dimensions
+            SELECT check_id, worker, hour_start, jsonb_object_agg(key, stats) AS dimensions
             FROM dims
-            GROUP BY check_id, agent, hour_start
+            GROUP BY check_id, worker, hour_start
         )
-        INSERT INTO check_result_rollups (check_id, agent, hour_start, up, down, error, dimensions)
-        SELECT c.check_id, c.agent, c.hour_start, c.up, c.down, c.error, coalesce(d.dimensions, '{{}}'::jsonb)
+        INSERT INTO check_result_rollups (check_id, worker, hour_start, up, down, error, dimensions)
+        SELECT c.check_id, c.worker, c.hour_start, c.up, c.down, c.error, coalesce(d.dimensions, '{{}}'::jsonb)
         FROM counts c
-        LEFT JOIN dims_by_hour d USING (check_id, agent, hour_start)
-        ON CONFLICT (check_id, agent, hour_start) DO UPDATE
+        LEFT JOIN dims_by_hour d USING (check_id, worker, hour_start)
+        ON CONFLICT (check_id, worker, hour_start) DO UPDATE
         SET up = excluded.up, down = excluded.down, error = excluded.error, dimensions = excluded.dimensions
         """;
 

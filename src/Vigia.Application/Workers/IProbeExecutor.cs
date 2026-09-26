@@ -1,4 +1,4 @@
-namespace Vigia.Application.Agents;
+namespace Vigia.Application.Workers;
 
 /// <summary>
 /// Runs one probe of an assignment. Never throws for plugin failures; they become error results.

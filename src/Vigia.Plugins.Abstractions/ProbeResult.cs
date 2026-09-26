@@ -5,7 +5,7 @@ namespace Vigia.Plugins;
 /// </summary>
 /// <param name="Outcome">Whether the target is up, down, or the probe failed to run.</param>
 /// <param name="Measurements">Values for the dimensions the check declares.</param>
-/// <param name="Message">Why the target is down or the probe failed. Shown to users and to the investigation agent.</param>
+/// <param name="Message">Why the target is down or the probe failed. Shown to users and to the investigation worker.</param>
 public sealed record ProbeResult(Outcome Outcome, IReadOnlyList<Measurement> Measurements, string? Message = null)
 {
     /// <summary>The target is up.</summary>

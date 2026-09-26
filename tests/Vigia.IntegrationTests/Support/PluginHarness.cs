@@ -9,7 +9,7 @@ using Vigia.Plugins;
 namespace Vigia.IntegrationTests.Support;
 
 /// <summary>
-/// Loads the real staged plugins and probes them through the host context, the same way agents do.
+/// Loads the real staged plugins and probes them through the host context, the same way workers do.
 /// </summary>
 public static class PluginHarness
 {

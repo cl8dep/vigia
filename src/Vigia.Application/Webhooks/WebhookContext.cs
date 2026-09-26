@@ -1,4 +1,4 @@
-using Vigia.Application.Agents;
+using Vigia.Application.Workers;
 using Vigia.Plugins;
 
 namespace Vigia.Application.Webhooks;
@@ -12,8 +12,8 @@ namespace Vigia.Application.Webhooks;
 /// <param name="time">Clock.</param>
 public sealed class WebhookContext(Guid checkId, object config, IResultSink sink, TimeProvider time) : IWebhookContext
 {
-    /// <summary>Agent name recorded on results written by webhooks.</summary>
-    public const string Agent = "webhook";
+    /// <summary>Worker name recorded on results written by webhooks.</summary>
+    public const string Worker = "webhook";
 
     /// <inheritdoc />
     public object Config { get; } = config;
@@ -28,7 +28,7 @@ public sealed class WebhookContext(Guid checkId, object config, IResultSink sink
         var record = new ProbeRecord(
             Guid.CreateVersion7(now),
             checkId,
-            Agent,
+            Worker,
             result.Outcome,
             result.Measurements.ToDictionary(m => m.Dimension, m => m.Value),
             result.Message,

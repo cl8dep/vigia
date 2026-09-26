@@ -3,14 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Vigia.Application.Agents;
+using Vigia.Application.Workers;
 using Vigia.Application.Auth;
 using Vigia.Application.Common.Interfaces;
 using Vigia.Application.Webhooks;
 using Vigia.Application.Plugins;
 using Vigia.Application.Results;
 using Vigia.Application.Rules;
-using Vigia.Infrastructure.Agents;
+using Vigia.Infrastructure.Workers;
 using Vigia.Infrastructure.Checks;
 using Vigia.Infrastructure.Identity;
 using Vigia.Infrastructure.Persistence;
@@ -61,7 +61,7 @@ public static class DependencyInjection
         services.AddHttpClient(HostCheckContext.HttpClientName).RemoveAllLoggers();
         services.AddSingleton<ICheckContext, HostCheckContext>();
 
-        services.Configure<AgentOptions>(configuration.GetSection(AgentOptions.Section));
+        services.Configure<WorkerOptions>(configuration.GetSection(WorkerOptions.Section));
         services.AddSingleton<IProbeExecutor, ProbeExecutor>();
         services.AddSingleton<IAssignmentSource, DbAssignmentSource>();
         services.AddScoped<RuleEvaluator>();
@@ -69,9 +69,9 @@ public static class DependencyInjection
         services.AddSingleton<IResultSink, DbResultSink>();
         services.AddSingleton<IWebhookReceiptStore, DbWebhookReceiptStore>();
         services.AddMetrics();
-        services.AddSingleton<AgentMetrics>();
-        services.AddSingleton<AgentScheduler>();
-        services.AddHostedService<BuiltInAgentService>();
+        services.AddSingleton<WorkerMetrics>();
+        services.AddSingleton<WorkerScheduler>();
+        services.AddHostedService<BuiltInWorkerService>();
 
         services.Configure<RetentionOptions>(configuration.GetSection(RetentionOptions.Section));
         services.AddScoped<ResultMaintenance>();

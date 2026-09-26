@@ -1,9 +1,9 @@
 using Vigia.Domain.Checks;
 
-namespace Vigia.Application.Agents;
+namespace Vigia.Application.Workers;
 
 /// <summary>
-/// A check an agent must run: everything needed to probe it without asking the control plane.
+/// A check a worker must run: everything needed to probe it without asking the control plane.
 /// </summary>
 /// <param name="CheckId">Check id.</param>
 /// <param name="Slug">Check slug, for logs.</param>

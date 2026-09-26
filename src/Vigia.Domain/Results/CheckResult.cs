@@ -1,7 +1,7 @@
 namespace Vigia.Domain.Results;
 
 /// <summary>
-/// One probe of one check by one agent. Immutable once written.
+/// One probe of one check by one worker. Immutable once written.
 /// </summary>
 public sealed class CheckResult
 {
@@ -12,7 +12,7 @@ public sealed class CheckResult
     /// <summary>Creates a result.</summary>
     /// <param name="id">UUIDv7 generated where the probe ran, so re-sending the same result is idempotent.</param>
     /// <param name="checkId">Check that was probed.</param>
-    /// <param name="agent">Agent that ran the probe.</param>
+    /// <param name="worker">Worker that ran the probe.</param>
     /// <param name="outcome">Probe outcome.</param>
     /// <param name="measurements">Dimension name to value.</param>
     /// <param name="message">Why the target is down or the probe failed.</param>
@@ -21,7 +21,7 @@ public sealed class CheckResult
     public CheckResult(
         Guid id,
         Guid checkId,
-        string agent,
+        string worker,
         ResultOutcome outcome,
         IReadOnlyDictionary<string, double> measurements,
         string? message,
@@ -30,7 +30,7 @@ public sealed class CheckResult
     {
         Id = id;
         CheckId = checkId;
-        Agent = agent;
+        Worker = worker;
         Outcome = outcome;
         Measurements = new Dictionary<string, double>(measurements);
         Message = message;
@@ -43,8 +43,8 @@ public sealed class CheckResult
     /// <summary>Check that was probed.</summary>
     public Guid CheckId { get; private set; }
 
-    /// <summary>Agent that ran the probe, for example <c>builtin</c>.</summary>
-    public string Agent { get; private set; } = string.Empty;
+    /// <summary>Worker that ran the probe, for example <c>builtin</c>.</summary>
+    public string Worker { get; private set; } = string.Empty;
 
     /// <summary>Probe outcome.</summary>
     public ResultOutcome Outcome { get; private set; }

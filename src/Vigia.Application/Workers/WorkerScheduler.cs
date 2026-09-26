@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Vigia.Application.Agents;
+namespace Vigia.Application.Workers;
 
 /// <summary>
 /// Runs assigned checks on their intervals. One loop over a priority queue ordered by next run time,
@@ -11,14 +11,14 @@ namespace Vigia.Application.Agents;
 /// Missed ticks are skipped, never caught up. A probe still running when its next tick comes skips that tick,
 /// so a slow target never piles up probes.
 /// </remarks>
-public sealed class AgentScheduler(
+public sealed class WorkerScheduler(
     IAssignmentSource source,
     IProbeExecutor executor,
     IResultSink sink,
-    AgentMetrics metrics,
-    IOptions<AgentOptions> options,
+    WorkerMetrics metrics,
+    IOptions<WorkerOptions> options,
     TimeProvider time,
-    ILogger<AgentScheduler> logger)
+    ILogger<WorkerScheduler> logger)
 {
     private readonly Dictionary<Guid, ScheduledCheck> _checks = [];
     private readonly PriorityQueue<Guid, DateTimeOffset> _queue = new();
@@ -68,7 +68,7 @@ public sealed class AgentScheduler(
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            // Keep running the last known assignments; that is the point of the agent owning its schedule.
+            // Keep running the last known assignments; that is the point of the worker owning its schedule.
             logger.LogWarning(ex, "Could not refresh assignments; keeping {Count} current check(s)", _checks.Count);
             return;
         }

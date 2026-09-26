@@ -42,7 +42,7 @@ public sealed class ResultMaintenanceTests(VigiaApiFactory factory)
         Assert.Equal(2, rollups.Count);
         Assert.All(rollups, r => Assert.Equal(Hour, r.HourStart));
 
-        var builtin = rollups.Single(r => r.Agent == "builtin");
+        var builtin = rollups.Single(r => r.Worker == "builtin");
         Assert.Equal((2, 1, 1), (builtin.Up, builtin.Down, builtin.Error));
         var latency = builtin.Dimensions["latency"];
         Assert.Equal(100, latency.Min);
@@ -51,7 +51,7 @@ public sealed class ResultMaintenanceTests(VigiaApiFactory factory)
         Assert.Equal(290, latency.P95, precision: 6);
         Assert.Equal(3, latency.Count);
 
-        Assert.Equal(1, rollups.Single(r => r.Agent == "eu").Up);
+        Assert.Equal(1, rollups.Single(r => r.Worker == "eu").Up);
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public sealed class ResultMaintenanceTests(VigiaApiFactory factory)
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             await db.Database.ExecuteSqlRawAsync(
-                "INSERT INTO check_result_rollups (check_id, agent, hour_start, up, down, error, dimensions) VALUES ({0}, 'builtin', {1}, 1, 0, 0, '{{}}')",
+                "INSERT INTO check_result_rollups (check_id, worker, hour_start, up, down, error, dimensions) VALUES ({0}, 'builtin', {1}, 1, 0, 0, '{{}}')",
                 [checkId, CurrentHour.AddDays(-401)], Ct);
         }
 
@@ -93,10 +93,10 @@ public sealed class ResultMaintenanceTests(VigiaApiFactory factory)
         Assert.DoesNotContain(await RollupsAsync(checkId), r => r.HourStart < Now.AddDays(-400));
     }
 
-    private static CheckResult Result(Guid checkId, string agent, ResultOutcome outcome, DateTimeOffset at, double? latency = null)
+    private static CheckResult Result(Guid checkId, string worker, ResultOutcome outcome, DateTimeOffset at, double? latency = null)
     {
         var measurements = latency is null ? new Dictionary<string, double>() : new Dictionary<string, double> { ["latency"] = latency.Value };
-        return new CheckResult(Guid.CreateVersion7(at), checkId, agent, outcome, measurements, null, 1, at);
+        return new CheckResult(Guid.CreateVersion7(at), checkId, worker, outcome, measurements, null, 1, at);
     }
 
     private async Task<Guid> CreateCheckAsync()

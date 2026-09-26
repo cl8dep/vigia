@@ -26,8 +26,8 @@ First real user: Flystern (travel platform with external providers such as Sabre
 ## Principles
 
 1. **Excellent without AI, better with it.** AI is an add-on layer. Every alert is delivered even if the LLM is down or not configured.
-2. **The monitor lives outside the blast radius.** The control plane should not share infrastructure with what it monitors. Agents keep working and alerting when the control plane is unreachable.
-3. **Outside-in and inside-out.** Agents run both in public regions and inside private networks. Comparing both views is the fastest path to a diagnosis.
+2. **The monitor lives outside the blast radius.** The control plane should not share infrastructure with what it monitors. Workers keep working and alerting when the control plane is unreachable.
+3. **Outside-in and inside-out.** Workers run both in public regions and inside private networks. Comparing both views is the fastest path to a diagnosis.
 4. **Everything is a plugin.** Checks, alert sources, notifiers, context providers and AI backends share one model: typed config, attributes, generated schema. See [plugins.md](plugins.md).
 5. **Config as code.** Everything configurable in the UI is also declarable in YAML, with `plan` / `apply`.
 6. **Integrate, don't replace.** Receive alerts from Prometheus, Grafana, Datadog. Do not store logs, metrics or traces.

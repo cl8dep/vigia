@@ -18,7 +18,7 @@ public sealed class CheckResultConfiguration : IEntityTypeConfiguration<CheckRes
         builder.ToTable("check_results");
         builder.HasKey(r => r.Id);
         builder.Property(r => r.Id).ValueGeneratedNever();
-        builder.Property(r => r.Agent).HasMaxLength(100).IsRequired();
+        builder.Property(r => r.Worker).HasMaxLength(100).IsRequired();
         builder.Property(r => r.Outcome).HasConversion<string>().HasMaxLength(10);
         builder.Property(r => r.Measurements)
             .HasColumnType("jsonb")
