@@ -1,6 +1,11 @@
 <Solution>
   <Folder Name="/plugins/">
+    <Project Path="plugins/Vigia.Check.Dns/Vigia.Check.Dns.csproj" />
+    <Project Path="plugins/Vigia.Check.Heartbeat/Vigia.Check.Heartbeat.csproj" />
     <Project Path="plugins/Vigia.Check.Http/Vigia.Check.Http.csproj" />
+    <Project Path="plugins/Vigia.Check.Ping/Vigia.Check.Ping.csproj" />
+    <Project Path="plugins/Vigia.Check.Tcp/Vigia.Check.Tcp.csproj" />
+    <Project Path="plugins/Vigia.Check.Tls/Vigia.Check.Tls.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Vigia.Api/Vigia.Api.csproj" />

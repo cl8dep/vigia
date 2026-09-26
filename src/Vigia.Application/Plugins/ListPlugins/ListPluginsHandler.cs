@@ -21,8 +21,7 @@ public sealed class ListPluginsHandler(IPluginRegistry registry) : IQueryHandler
 
     private static PluginDto ToDto(CheckPlugin plugin)
     {
-        var manifest = plugin.Check.Manifest;
-        var dimensions = manifest.Dimensions
+        var dimensions = plugin.Dimensions
             .Select(d => new DimensionDto(d.Name, JsonNamingPolicy.CamelCase.ConvertName(d.Direction.ToString()), d.Unit))
             .ToList();
 
@@ -30,10 +29,11 @@ public sealed class ListPluginsHandler(IPluginRegistry registry) : IQueryHandler
             plugin.Id,
             plugin.Version,
             "check",
-            manifest.Label,
-            manifest.Description,
-            Duration.Format(manifest.DefaultInterval),
+            plugin.Manifest.Label,
+            plugin.Manifest.Description,
+            Duration.Format(plugin.DefaultInterval),
             dimensions,
+            plugin.Manifest.Webhooks?.Select(w => new WebhookDto(w.Name, w.Description)).ToList() ?? [],
             plugin.Schema);
     }
 }

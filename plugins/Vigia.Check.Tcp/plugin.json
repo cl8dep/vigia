@@ -1,0 +1,21 @@
+{
+  "$schema": "../../schemas/plugin.schema.json",
+  "id": "vigia.check.tcp",
+  "version": "1.0.0",
+  "sdk": "1.x",
+  "entry": "Vigia.Check.Tcp.dll",
+  "label": "TCP",
+  "description": "Opens a TCP connection to a host and port.",
+  "check": {
+    "class": "Vigia.Check.Tcp.TcpCheck",
+    "config": "Vigia.Check.Tcp.TcpCheckConfig",
+    "defaultInterval": "1m",
+    "dimensions": [
+      {
+        "name": "latency",
+        "direction": "higherIsWorse",
+        "unit": "ms"
+      }
+    ]
+  }
+}

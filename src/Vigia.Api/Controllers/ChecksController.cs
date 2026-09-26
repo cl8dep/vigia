@@ -10,6 +10,7 @@ using Vigia.Application.Checks.ListCheckResults;
 using Vigia.Application.Checks.ListCheckRollups;
 using Vigia.Application.Checks.ListChecks;
 using Vigia.Application.Checks.ProbeCheck;
+using Vigia.Application.Checks.RotateWebhookToken;
 using Vigia.Application.Checks.UpdateCheck;
 using Vigia.Application.Plugins.ValidateCheckConfig;
 
@@ -86,6 +87,13 @@ public sealed class ChecksController(IMediator mediator) : ControllerBase
         string slug, CancellationToken ct, [FromQuery] DateTimeOffset? from = null, [FromQuery] DateTimeOffset? to = null)
     {
         return Ok(await mediator.Send(new ListCheckRollupsQuery(slug, from, to), ct));
+    }
+
+    /// <summary>Issues a new webhook token for the check, invalidating the previous one. Shown once.</summary>
+    [HttpPost("{slug}/webhook-token")]
+    public async Task<ActionResult<WebhookTokenDto>> RotateWebhookToken(string slug, CancellationToken ct)
+    {
+        return Ok(await mediator.Send(new RotateWebhookTokenCommand(slug), ct));
     }
 
     /// <summary>Runs one probe now, in-process, without storing the result.</summary>

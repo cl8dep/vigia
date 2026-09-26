@@ -25,6 +25,7 @@ public sealed class CheckConfiguration : IEntityTypeConfiguration<Check>
         builder.Property(c => c.Labels)
             .HasColumnType("jsonb")
             .HasConversion(new JsonDictionaryConverter<string>(), new DictionaryComparer<string>());
+        builder.Property(c => c.WebhookTokenHash).HasMaxLength(64);
         builder.Property(c => c.ManagedBy).HasConversion<string>().HasMaxLength(20);
     }
 }

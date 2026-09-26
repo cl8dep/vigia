@@ -1,0 +1,25 @@
+{
+  "$schema": "../../schemas/plugin.schema.json",
+  "id": "vigia.check.dns",
+  "version": "1.0.0",
+  "sdk": "1.x",
+  "entry": "Vigia.Check.Dns.dll",
+  "label": "DNS",
+  "description": "Resolves a record against one or more resolvers and checks the answer.",
+  "check": {
+    "class": "Vigia.Check.Dns.DnsCheck",
+    "config": "Vigia.Check.Dns.DnsCheckConfig",
+    "defaultInterval": "1m",
+    "dimensions": [
+      {
+        "name": "latency",
+        "direction": "higherIsWorse",
+        "unit": "ms"
+      },
+      {
+        "name": "failed-resolvers",
+        "direction": "higherIsWorse"
+      }
+    ]
+  }
+}

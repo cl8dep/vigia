@@ -1,7 +1,25 @@
 {
+  "$schema": "../../schemas/plugin.schema.json",
   "id": "vigia.check.http",
   "version": "1.0.0",
   "sdk": "1.x",
   "entry": "Vigia.Check.Http.dll",
-  "kinds": ["check"]
+  "label": "HTTP",
+  "description": "Sends an HTTP request and verifies the status code and optionally the response body.",
+  "check": {
+    "class": "Vigia.Check.Http.HttpCheck",
+    "config": "Vigia.Check.Http.HttpCheckConfig",
+    "defaultInterval": "1m",
+    "dimensions": [
+      {
+        "name": "latency",
+        "direction": "higherIsWorse",
+        "unit": "ms"
+      },
+      {
+        "name": "status-code",
+        "direction": "higherIsWorse"
+      }
+    ]
+  }
 }

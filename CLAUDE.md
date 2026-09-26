@@ -19,6 +19,7 @@ Self-hosted monitoring, on-call and AI-assisted incident investigation. Design d
 - **HTTP API uses controllers** (`[ApiController]`, one controller per resource in `Vigia.Api/Controllers`), not Minimal APIs. Controllers only translate HTTP to Mediator requests.
 - Comments inside method bodies only explain a non-obvious why.
 - Plugins never ship `Vigia.Plugins.Abstractions`; it is always resolved from the host.
+- `plugin.json` is a plugin's only manifest (like `AndroidManifest.xml`): identity, component classes, dimensions, webhooks. Plugin classes never carry ids, labels or manifests in code. Any manifest change updates `PluginManifest` and `schemas/plugin.schema.json` together (`ManifestSchemaTests` fails otherwise).
 
 ## Layout
 

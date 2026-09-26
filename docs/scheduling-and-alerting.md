@@ -45,7 +45,7 @@ Relevant files: `Infrastructure/Jobs/CheckSchedulerService.cs`, `Infrastructure/
 | 5 | Check status change goes through an in-memory `Channel` | Lost on crash; service status can go stale | Status recomputation is triggered through the outbox, like notifications |
 | 6 | `IsAlerting` stored on `AlertConfig` | Mixes rule config and runtime state; cannot work for a rule that targets many checks by selector | State lives on the alert, keyed by `(rule, check)` |
 | 7 | Alert fingerprint = normalized message | A new error text ("timeout" -> "connection refused") resolves the alert and opens a new one: re-paging and noise | Fingerprint = rule + check (+ source labels for inbound). The message is an attribute that updates |
-| 8 | Alert messages built with a `switch` over dimension names (`"Latency"`, `"CertExpiry"`) | Core knows plugin dimensions; contradicts the plugin model | Messages built from `DimensionSpec` (name, unit, direction) plus `ProbeResult.Message` |
+| 8 | Alert messages built with a `switch` over dimension names (`"Latency"`, `"CertExpiry"`) | Core knows plugin dimensions; contradicts the plugin model | Messages built from the dimension declared in `plugin.json` (name, unit, direction) plus `ProbeResult.Message` |
 | 9 | No retention for data points | The table grows forever | Raw results kept N days (default 14), hourly rollups kept longer, pruned by a background job |
 
 ## Vigia design

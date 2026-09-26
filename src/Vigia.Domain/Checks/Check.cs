@@ -54,6 +54,12 @@ public sealed class Check : Entity
     /// <summary>Time between probes.</summary>
     public TimeSpan Interval { get; private set; }
 
+    /// <summary>
+    /// SHA-256 of the token that authenticates this check's webhooks, or null when the plugin declares none.
+    /// The token itself is only shown once.
+    /// </summary>
+    public string? WebhookTokenHash { get; private set; }
+
     /// <summary>Disabled checks are kept but not scheduled.</summary>
     public bool Enabled { get; private set; }
 
@@ -72,6 +78,12 @@ public sealed class Check : Entity
         PluginVersion = pluginVersion;
         ConfigJson = configJson;
         Interval = interval;
+    }
+
+    /// <summary>Sets or replaces the webhook token hash, invalidating the previous token.</summary>
+    public void SetWebhookTokenHash(string hash)
+    {
+        WebhookTokenHash = hash;
     }
 
     /// <summary>Stops scheduling this check.</summary>

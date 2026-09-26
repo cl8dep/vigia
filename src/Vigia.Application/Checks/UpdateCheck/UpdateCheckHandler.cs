@@ -29,7 +29,7 @@ public sealed class UpdateCheckHandler(IAppDbContext db, IPluginRegistry registr
             throw new ValidationException("plugin", $"Plugin '{check.Plugin}' is not installed.");
         }
 
-        var interval = plugin.Check.Manifest.DefaultInterval;
+        var interval = plugin.DefaultInterval;
         if (command.Interval is not null && !Duration.TryParse(command.Interval, out interval))
         {
             throw new ValidationException("interval", $"'{command.Interval}' is not a duration. Use values like 30s, 5m.");

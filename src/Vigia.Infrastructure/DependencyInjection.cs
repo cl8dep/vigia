@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Vigia.Application.Agents;
 using Vigia.Application.Auth;
 using Vigia.Application.Common.Interfaces;
+using Vigia.Application.Webhooks;
 using Vigia.Application.Plugins;
 using Vigia.Infrastructure.Agents;
 using Vigia.Infrastructure.Checks;
@@ -13,6 +14,7 @@ using Vigia.Infrastructure.Identity;
 using Vigia.Infrastructure.Persistence;
 using Vigia.Infrastructure.Plugins;
 using Vigia.Infrastructure.Results;
+using Vigia.Infrastructure.Webhooks;
 using Vigia.Plugins;
 
 namespace Vigia.Infrastructure;
@@ -61,6 +63,7 @@ public static class DependencyInjection
         services.AddSingleton<IProbeExecutor, ProbeExecutor>();
         services.AddSingleton<IAssignmentSource, DbAssignmentSource>();
         services.AddSingleton<IResultSink, DbResultSink>();
+        services.AddSingleton<IWebhookReceiptStore, DbWebhookReceiptStore>();
         services.AddMetrics();
         services.AddSingleton<AgentMetrics>();
         services.AddSingleton<AgentScheduler>();

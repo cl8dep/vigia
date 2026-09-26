@@ -7,7 +7,18 @@ Self-hosted monitoring, on-call and AI-assisted incident investigation. Working 
 ## What works today
 
 - **Plugin system.** Every check type is a separate assembly loaded at startup from `plugins/<id>/<version>/`, isolated in its own load context. The config schema is generated from the plugin's config record and attributes, and drives validation for the API (and later UI, YAML and Terraform).
-- **HTTP check** (`vigia.check.http`) as the first built-in plugin.
+- **Built-in checks**, each its own plugin:
+
+  | Plugin | Checks | Dimensions |
+  |---|---|---|
+  | `vigia.check.http` | Status code, optional body text | `latency`, `status-code` |
+  | `vigia.check.tcp` | TCP connection accepted | `latency` |
+  | `vigia.check.tls` | Handshake, chain and name validation, expiry | `latency`, `days-to-expiry` |
+  | `vigia.check.dns` | Answer from one or more resolvers, each judged separately | `latency`, `failed-resolvers` |
+  | `vigia.check.ping` | ICMP echo; down only on total loss | `latency`, `packet-loss` |
+  | `vigia.check.heartbeat` | A job calls the `ping` webhook; down when a ping is late | `since-last-ping` |
+
+  Ping on Linux needs `CAP_NET_RAW` or unprivileged ICMP (`net.ipv4.ping_group_range`).
 - **Checks API.** Create, read, update, delete, validate config without saving, probe on demand.
 - **Built-in agent.** Probes every enabled check on its interval with bounded concurrency, jitter and no overlapping probes. Emits metrics on meter `Vigia.Agent`.
 - **Results.** Every probe is stored with exact timestamps. Hourly rollups keep per-dimension min / avg / max / p95. Raw results are kept 14 days, rollups 400 days.
@@ -57,6 +68,8 @@ curl $URL/api/v1/checks/example/results -H "Authorization: Bearer $TOKEN"
 | `POST` | `/api/v1/checks/{slug}/probe` | Probe once now, without storing |
 | `GET` | `/api/v1/checks/{slug}/results` | Latest raw results |
 | `GET` | `/api/v1/checks/{slug}/rollups` | Hourly rollups (`from`, `to`) |
+| `POST` | `/api/v1/checks/{slug}/webhook-token` | Issue a new webhook token (shown once) |
+| `GET`, `POST` | `/api/v1/hooks/{slug}/{webhook}` | Plugin webhooks, e.g. heartbeat `ping`. Token in `?token=` or `X-Vigia-Token` |
 
 OpenAPI document at `/openapi/v1.json`.
 
@@ -73,6 +86,25 @@ OpenAPI document at `/openapi/v1.json`.
 
 ## Writing a check plugin
 
+A plugin is an assembly plus a `plugin.json`, the single manifest (like Android's), described by [`schemas/plugin.schema.json`](schemas/plugin.schema.json). The manifest declares identity, the classes the host instantiates, dimensions and webhooks; the classes hold behavior only.
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/cl8dep/vigia/main/schemas/plugin.schema.json",
+  "id": "acme.check.ping",
+  "version": "1.0.0",
+  "sdk": "1.x",
+  "entry": "Acme.Check.Ping.dll",
+  "label": "Ping",
+  "description": "ICMP echo.",
+  "check": {
+    "class": "Acme.Check.Ping.PingCheck",
+    "config": "Acme.Check.Ping.PingConfig",
+    "dimensions": [{ "name": "latency", "direction": "higherIsWorse", "unit": "ms" }]
+  }
+}
+```
+
 ```csharp
 public sealed record PingConfig
 {
@@ -82,24 +114,15 @@ public sealed record PingConfig
 
 public sealed class PingCheck : Check<PingConfig>
 {
-    public override string Id { get { return "acme.check.ping"; } }
-
-    public override CheckManifest Manifest { get; } = new()
-    {
-        Label = "Ping",
-        Description = "ICMP echo.",
-        ConfigType = typeof(PingConfig),
-        Dimensions = [DimensionSpec.Latency],
-    };
-
     public override async Task<ProbeResult> ProbeAsync(PingConfig config, ICheckContext ctx, CancellationToken ct)
     {
         // ...
+        return ProbeResult.Up(Measurement.Latency(ms));
     }
 }
 ```
 
-Reference `Vigia.Plugins.Abstractions` with `Private=false` and `ExcludeAssets=runtime`, set `EnableDynamicLoading`, and ship a `plugin.json` next to the assembly. See `plugins/Vigia.Check.Http` for a complete example.
+Reference `Vigia.Plugins.Abstractions` with `Private=false` and `ExcludeAssets=runtime` and set `EnableDynamicLoading` (plugins in this repo get both from `plugins/Directory.Build.props`). See `plugins/Vigia.Check.Heartbeat` for a plugin with a webhook, and [docs/plugins.md](docs/plugins.md) for every manifest rule.
 
 ## Development
 

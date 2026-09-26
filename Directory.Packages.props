@@ -1,5 +1,7 @@
 <Project>
   <ItemGroup>
+    <PackageVersion Include="DnsClient" Version="1.8.0" />
+    <PackageVersion Include="JsonSchema.Net" Version="9.4.0" />
     <PackageVersion Include="Mediator.Abstractions" Version="3.0.2" />
     <PackageVersion Include="Mediator.SourceGenerator" Version="3.0.2" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />

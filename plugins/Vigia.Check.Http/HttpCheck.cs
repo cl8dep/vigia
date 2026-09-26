@@ -8,24 +8,7 @@ namespace Vigia.Check.Http;
 /// </summary>
 public sealed class HttpCheck : Check<HttpCheckConfig>
 {
-    /// <summary>HTTP status code of the response.</summary>
-    public static readonly DimensionSpec StatusCode = new("status-code", Direction.HigherIsWorse);
-
-    /// <inheritdoc />
-    public override string Id
-    {
-        get { return "vigia.check.http"; }
-    }
-
-    /// <inheritdoc />
-    public override CheckManifest Manifest { get; } = new()
-    {
-        Label = "HTTP",
-        Description = "Sends an HTTP request and verifies the status code and optionally the response body.",
-        ConfigType = typeof(HttpCheckConfig),
-        DefaultInterval = TimeSpan.FromMinutes(1),
-        Dimensions = [DimensionSpec.Latency, StatusCode],
-    };
+    private const string StatusCode = "status-code";
 
     /// <inheritdoc />
     public override async Task<ProbeResult> ProbeAsync(HttpCheckConfig config, ICheckContext ctx, CancellationToken ct)
@@ -57,8 +40,8 @@ public sealed class HttpCheck : Check<HttpCheckConfig>
 
         using (response)
         {
-            var latency = DimensionSpec.Latency.Measure(Stopwatch.GetElapsedTime(started).TotalMilliseconds);
-            var status = StatusCode.Measure((int)response.StatusCode);
+            var latency = Measurement.Latency(Stopwatch.GetElapsedTime(started).TotalMilliseconds);
+            var status = new Measurement(StatusCode, (int)response.StatusCode);
 
             if (!config.ExpectedStatus.Contains((int)response.StatusCode))
             {

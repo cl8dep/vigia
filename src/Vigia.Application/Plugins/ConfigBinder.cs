@@ -22,7 +22,7 @@ public static class ConfigBinder
             throw new ValidationException(fieldPrefix, "Config must be a JSON object.");
         }
 
-        var configType = plugin.Check.Manifest.ConfigType;
+        var configType = plugin.ConfigType;
         object value;
         try
         {

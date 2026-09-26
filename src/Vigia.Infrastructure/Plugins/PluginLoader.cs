@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Vigia.Application.Plugins;
-using Vigia.Plugins;
+using Vigia.Application.Plugins.Manifest;
 
 namespace Vigia.Infrastructure.Plugins;
 
@@ -42,7 +42,7 @@ public sealed class PluginLoader(ILogger<PluginLoader> logger)
 
             try
             {
-                checks.AddRange(LoadOne(versionDir));
+                checks.Add(LoadOne(versionDir));
             }
             catch (Exception ex)
             {
@@ -55,15 +55,15 @@ public sealed class PluginLoader(ILogger<PluginLoader> logger)
         return new PluginRegistry(checks, failures);
     }
 
-    private static IEnumerable<CheckPlugin> LoadOne(string versionDir)
+    private static CheckPlugin LoadOne(string versionDir)
     {
-        var manifestPath = Path.Combine(versionDir, PluginManifestFile.FileName);
+        var manifestPath = Path.Combine(versionDir, PluginManifest.FileName);
         if (!File.Exists(manifestPath))
         {
-            throw new InvalidDataException($"Missing {PluginManifestFile.FileName}.");
+            throw new InvalidDataException($"Missing {PluginManifest.FileName}.");
         }
 
-        var manifest = PluginManifestFile.Read(manifestPath);
+        var manifest = PluginManifest.Parse(File.ReadAllText(manifestPath));
         if (manifest.Sdk != $"{SdkMajor}.x")
         {
             throw new InvalidDataException($"Plugin targets SDK {manifest.Sdk}; this host supports {SdkMajor}.x.");
@@ -81,29 +81,6 @@ public sealed class PluginLoader(ILogger<PluginLoader> logger)
         }
 
         var assembly = new PluginLoadContext(entryPath).LoadFromAssemblyPath(entryPath);
-        var checkTypes = assembly.GetExportedTypes()
-            .Where(t => t is { IsClass: true, IsAbstract: false } && typeof(ICheck).IsAssignableFrom(t))
-            .ToList();
-
-        if (checkTypes.Count == 0)
-        {
-            throw new InvalidDataException("No check implementations found. Does the plugin ship its own copy of Vigia.Plugins.Abstractions?");
-        }
-
-        var loaded = new List<CheckPlugin>();
-        foreach (var type in checkTypes)
-        {
-            var check = (ICheck)(Activator.CreateInstance(type)
-                ?? throw new InvalidDataException($"{type.Name} needs a parameterless constructor."));
-
-            if (check.Id != manifest.Id)
-            {
-                throw new InvalidDataException($"{type.Name} reports id '{check.Id}' but plugin.json says '{manifest.Id}'.");
-            }
-
-            loaded.Add(new CheckPlugin(manifest.Id, manifest.Version, check, ConfigSchemaBuilder.Build(check.Manifest.ConfigType)));
-        }
-
-        return loaded;
+        return CheckPluginBuilder.Build(manifest, assembly);
     }
 }

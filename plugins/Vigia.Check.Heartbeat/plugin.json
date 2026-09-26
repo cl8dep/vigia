@@ -1,0 +1,28 @@
+{
+  "$schema": "../../schemas/plugin.schema.json",
+  "id": "vigia.check.heartbeat",
+  "version": "1.0.0",
+  "sdk": "1.x",
+  "entry": "Vigia.Check.Heartbeat.dll",
+  "label": "Heartbeat",
+  "description": "A job pings Vigia when it runs; a missed ping marks the check down.",
+  "check": {
+    "class": "Vigia.Check.Heartbeat.HeartbeatCheck",
+    "config": "Vigia.Check.Heartbeat.HeartbeatCheckConfig",
+    "defaultInterval": "1m",
+    "dimensions": [
+      {
+        "name": "since-last-ping",
+        "direction": "higherIsWorse",
+        "unit": "s"
+      }
+    ]
+  },
+  "webhooks": [
+    {
+      "name": "ping",
+      "class": "Vigia.Check.Heartbeat.PingHandler",
+      "description": "Call when the job runs successfully."
+    }
+  ]
+}

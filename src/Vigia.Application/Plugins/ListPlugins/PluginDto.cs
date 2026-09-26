@@ -12,6 +12,7 @@ namespace Vigia.Application.Plugins.ListPlugins;
 /// <param name="Description">What it does.</param>
 /// <param name="DefaultInterval">Default interval for checks, as a duration string.</param>
 /// <param name="Dimensions">Dimensions the plugin measures.</param>
+/// <param name="Webhooks">Webhooks each check of this plugin receives.</param>
 /// <param name="Schema">Config schema.</param>
 public sealed record PluginDto(
     string Id,
@@ -21,4 +22,5 @@ public sealed record PluginDto(
     string Description,
     string? DefaultInterval,
     IReadOnlyList<DimensionDto> Dimensions,
+    IReadOnlyList<WebhookDto> Webhooks,
     ConfigSchema Schema);

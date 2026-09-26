@@ -1,0 +1,26 @@
+{
+  "$schema": "../../schemas/plugin.schema.json",
+  "id": "vigia.check.ping",
+  "version": "1.0.0",
+  "sdk": "1.x",
+  "entry": "Vigia.Check.Ping.dll",
+  "label": "Ping",
+  "description": "Sends ICMP echo requests and reports round-trip time and packet loss.",
+  "check": {
+    "class": "Vigia.Check.Ping.PingCheck",
+    "config": "Vigia.Check.Ping.PingCheckConfig",
+    "defaultInterval": "1m",
+    "dimensions": [
+      {
+        "name": "latency",
+        "direction": "higherIsWorse",
+        "unit": "ms"
+      },
+      {
+        "name": "packet-loss",
+        "direction": "higherIsWorse",
+        "unit": "%"
+      }
+    ]
+  }
+}

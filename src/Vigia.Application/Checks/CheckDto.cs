@@ -20,6 +20,8 @@ namespace Vigia.Application.Checks;
 /// <param name="ManagedBy">Owning front end.</param>
 /// <param name="CreatedAt">Creation time (UTC).</param>
 /// <param name="UpdatedAt">Last update time (UTC).</param>
+/// <param name="Webhooks">Webhooks this check receives, as <c>/api/v1/hooks/{slug}/{name}</c>.</param>
+/// <param name="WebhookToken">Webhook token; only present in the response that creates it.</param>
 public sealed record CheckDto(
     Guid Id,
     string Slug,
@@ -31,12 +33,15 @@ public sealed record CheckDto(
     IReadOnlyDictionary<string, string> Labels,
     string ManagedBy,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt)
+    DateTimeOffset UpdatedAt,
+    IReadOnlyList<string> Webhooks,
+    string? WebhookToken)
 {
     /// <summary>Maps an entity, removing secret fields using the plugin schema when the plugin is loaded.</summary>
     /// <param name="check">Entity.</param>
     /// <param name="plugin">Plugin, or null if not installed (then the whole config is hidden).</param>
-    public static CheckDto From(Check check, CheckPlugin? plugin)
+    /// <param name="webhookToken">Newly issued webhook token to show once, if any.</param>
+    public static CheckDto From(Check check, CheckPlugin? plugin, string? webhookToken = null)
     {
         return new CheckDto(
             check.Id,
@@ -49,7 +54,9 @@ public sealed record CheckDto(
             check.Labels,
             JsonNamingPolicy.CamelCase.ConvertName(check.ManagedBy.ToString()),
             check.CreatedAt,
-            check.UpdatedAt);
+            check.UpdatedAt,
+            plugin?.Webhooks.Keys.Order().ToList() ?? [],
+            webhookToken);
     }
 
     private static JsonElement RedactSecrets(string configJson, CheckPlugin? plugin)

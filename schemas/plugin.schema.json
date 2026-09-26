@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/cl8dep/vigia/main/schemas/plugin.schema.json",
+  "title": "Vigia plugin manifest",
+  "description": "plugin.json: the single manifest of a Vigia plugin. Declares identity, the classes the host instantiates, dimensions and webhooks.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "version", "sdk", "entry", "label", "description", "check"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Path or URL of this schema, for editor support. Ignored by the host."
+    },
+    "id": {
+      "type": "string",
+      "description": "Plugin id in dotted lowercase form, for example vigia.check.http. Must match the plugin folder name.",
+      "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9-]*)+$",
+      "maxLength": 200
+    },
+    "version": {
+      "type": "string",
+      "description": "Plugin version (major.minor.patch). Must match the version folder name.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "sdk": {
+      "type": "string",
+      "description": "SDK major the plugin is built against.",
+      "enum": ["1.x"]
+    },
+    "entry": {
+      "type": "string",
+      "description": "Entry assembly file name, next to plugin.json.",
+      "pattern": "^[^/\\\\]+\\.dll$"
+    },
+    "label": {
+      "type": "string",
+      "description": "Display name.",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "description": "What the plugin does, in one or two sentences.",
+      "maxLength": 500
+    },
+    "check": {
+      "type": "object",
+      "description": "The check component.",
+      "additionalProperties": false,
+      "required": ["class", "config"],
+      "properties": {
+        "class": {
+          "$ref": "#/$defs/typeName",
+          "description": "Full name of the class implementing ICheck (usually Check<TConfig>) in the entry assembly."
+        },
+        "config": {
+          "$ref": "#/$defs/typeName",
+          "description": "Full name of the config record in the entry assembly. Must be the TConfig of Check<TConfig>."
+        },
+        "defaultInterval": {
+          "$ref": "#/$defs/duration",
+          "description": "Interval for checks that do not set one. Default 1m."
+        },
+        "dimensions": {
+          "type": "array",
+          "description": "Measurements the check may report. Reporting an undeclared one makes the probe an error.",
+          "items": { "$ref": "#/$defs/dimension" }
+        }
+      }
+    },
+    "webhooks": {
+      "type": "array",
+      "description": "Webhooks each check of this plugin receives at /api/v1/hooks/{check}/{name}. Declaring one is what enables it.",
+      "items": { "$ref": "#/$defs/webhook" }
+    }
+  },
+  "$defs": {
+    "name": {
+      "type": "string",
+      "description": "Lowercase kebab case.",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "maxLength": 63
+    },
+    "typeName": {
+      "type": "string",
+      "description": "Full .NET type name, for example Acme.Check.Ping.PingCheck.",
+      "pattern": "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*$"
+    },
+    "duration": {
+      "type": "string",
+      "description": "Duration such as 500ms, 30s, 5m, 1h, 1d.",
+      "pattern": "^\\d+(\\.\\d+)?(ms|s|m|h|d)$"
+    },
+    "dimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "direction"],
+      "properties": {
+        "name": { "$ref": "#/$defs/name" },
+        "direction": {
+          "type": "string",
+          "description": "Which way the value gets worse.",
+          "enum": ["higherIsWorse", "lowerIsWorse"]
+        },
+        "unit": {
+          "type": "string",
+          "description": "Display unit, for example ms, d, %.",
+          "maxLength": 10
+        }
+      }
+    },
+    "webhook": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "class", "description"],
+      "properties": {
+        "name": { "$ref": "#/$defs/name" },
+        "class": {
+          "$ref": "#/$defs/typeName",
+          "description": "Full name of the class implementing IWebhookHandler in the entry assembly."
+        },
+        "description": {
+          "type": "string",
+          "description": "What calling it means, shown next to the URL."
+        }
+      }
+    }
+  }
+}

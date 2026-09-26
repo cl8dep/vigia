@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Vigia.Application.Common.Interfaces;
 using Vigia.Domain.Checks;
 using Vigia.Domain.Results;
+using Vigia.Domain.Webhooks;
 using Vigia.Infrastructure.Identity;
 
 namespace Vigia.Infrastructure.Persistence;
@@ -27,6 +28,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<CheckResultRollup> CheckResultRollups
     {
         get { return Set<CheckResultRollup>(); }
+    }
+
+    public DbSet<WebhookReceipt> WebhookReceipts
+    {
+        get { return Set<WebhookReceipt>(); }
     }
 
     /// <inheritdoc />

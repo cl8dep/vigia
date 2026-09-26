@@ -1,0 +1,26 @@
+{
+  "$schema": "../../schemas/plugin.schema.json",
+  "id": "vigia.check.tls",
+  "version": "1.0.0",
+  "sdk": "1.x",
+  "entry": "Vigia.Check.Tls.dll",
+  "label": "TLS certificate",
+  "description": "Performs a TLS handshake and tracks certificate validity and expiry.",
+  "check": {
+    "class": "Vigia.Check.Tls.TlsCheck",
+    "config": "Vigia.Check.Tls.TlsCheckConfig",
+    "defaultInterval": "1h",
+    "dimensions": [
+      {
+        "name": "latency",
+        "direction": "higherIsWorse",
+        "unit": "ms"
+      },
+      {
+        "name": "days-to-expiry",
+        "direction": "lowerIsWorse",
+        "unit": "d"
+      }
+    ]
+  }
+}

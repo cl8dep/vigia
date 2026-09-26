@@ -4,6 +4,7 @@ using Vigia.Application.Common;
 using Vigia.Application.Common.Exceptions;
 using Vigia.Application.Common.Interfaces;
 using Vigia.Application.Plugins;
+using Vigia.Application.Webhooks;
 using Vigia.Domain.Checks;
 using Vigia.Domain.Common;
 
@@ -22,7 +23,7 @@ public sealed class CreateCheckHandler(IAppDbContext db, IPluginRegistry registr
             throw new ValidationException("plugin", $"Plugin '{command.Plugin}' is not installed.");
         }
 
-        var interval = plugin.Check.Manifest.DefaultInterval;
+        var interval = plugin.DefaultInterval;
         if (command.Interval is not null && !Duration.TryParse(command.Interval, out interval))
         {
             throw new ValidationException("interval", $"'{command.Interval}' is not a duration. Use values like 30s, 5m.");
@@ -50,9 +51,16 @@ public sealed class CreateCheckHandler(IAppDbContext db, IPluginRegistry registr
             check.SetLabels(command.Labels);
         }
 
+        string? webhookToken = null;
+        if (plugin.Webhooks.Count > 0)
+        {
+            (webhookToken, var hash) = WebhookTokens.Create();
+            check.SetWebhookTokenHash(hash);
+        }
+
         db.Checks.Add(check);
         await db.SaveChangesAsync(ct);
 
-        return CheckDto.From(check, plugin);
+        return CheckDto.From(check, plugin, webhookToken);
     }
 }

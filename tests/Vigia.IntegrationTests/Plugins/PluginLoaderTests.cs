@@ -21,7 +21,33 @@ public sealed class PluginLoaderTests
         Assert.Empty(registry.Failures);
         Assert.True(registry.TryGetCheck("vigia.check.http", out var plugin));
         Assert.Equal("1.0.0", plugin.Version);
-        Assert.Equal("HTTP", plugin.Check.Manifest.Label);
+        Assert.Equal("HTTP", plugin.Manifest.Label);
+    }
+
+    [Fact]
+    public void Loads_every_built_in_plugin()
+    {
+        var registry = _loader.Load(RepoPaths.Plugins);
+
+        Assert.Empty(registry.Failures);
+        Assert.Equal(
+            ["vigia.check.dns", "vigia.check.heartbeat", "vigia.check.http", "vigia.check.ping", "vigia.check.tcp", "vigia.check.tls"],
+            registry.Checks.Select(c => c.Id).Order());
+    }
+
+    [Fact]
+    public void Plugin_dependencies_load_inside_the_plugin_context()
+    {
+        var registry = _loader.Load(RepoPaths.Plugins);
+        registry.TryGetCheck("vigia.check.dns", out var dns);
+        var context = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(dns.Check.GetType().Assembly)!;
+
+        // Dependencies load lazily, on first use; resolve it the way the runtime would.
+        var dnsClient = context.LoadFromAssemblyName(new System.Reflection.AssemblyName("DnsClient"));
+
+        Assert.Same(context, System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(dnsClient));
+        Assert.StartsWith(Path.Combine(RepoPaths.Plugins, "vigia.check.dns"), dnsClient.Location);
+        Assert.DoesNotContain(System.Runtime.Loader.AssemblyLoadContext.Default.Assemblies, a => a.GetName().Name == "DnsClient");
     }
 
     [Fact]
@@ -61,7 +87,10 @@ public sealed class PluginLoaderTests
         {
             CopyDirectory(Path.Combine(RepoPaths.Plugins, "vigia.check.http"), Path.Combine(root, "vigia.check.http"));
             var broken = Directory.CreateDirectory(Path.Combine(root, "vigia.check.broken", "1.0.0")).FullName;
-            File.WriteAllText(Path.Combine(broken, "plugin.json"), """{ "id": "vigia.check.broken", "version": "1.0.0", "sdk": "1.x", "entry": "Missing.dll", "kinds": ["check"] }""");
+            File.WriteAllText(Path.Combine(broken, "plugin.json"), """
+                { "id": "vigia.check.broken", "version": "1.0.0", "sdk": "1.x", "entry": "Missing.dll", "label": "Broken", "description": "",
+                  "check": { "class": "Broken.Check", "config": "Broken.Config" } }
+                """);
 
             var registry = _loader.Load(root);
 

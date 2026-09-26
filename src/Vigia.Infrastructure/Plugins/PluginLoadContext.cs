@@ -14,9 +14,13 @@ public sealed class PluginLoadContext : AssemblyLoadContext
 
     private readonly AssemblyDependencyResolver _resolver;
 
-    /// <summary>Creates a collectible context for the plugin whose entry assembly is <paramref name="entryPath"/>.</summary>
+    /// <summary>Creates the context for the plugin whose entry assembly is <paramref name="entryPath"/>.</summary>
+    /// <remarks>
+    /// Not collectible: a collectible context nobody references starts unloading when the GC finalizes it,
+    /// and every dependency the plugin loads lazily after that fails. Plugins load once per process.
+    /// </remarks>
     public PluginLoadContext(string entryPath)
-        : base(name: Path.GetFileNameWithoutExtension(entryPath), isCollectible: true)
+        : base(name: Path.GetFileNameWithoutExtension(entryPath), isCollectible: false)
     {
         _resolver = new AssemblyDependencyResolver(entryPath);
     }

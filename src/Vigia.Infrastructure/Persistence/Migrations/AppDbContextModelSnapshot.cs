@@ -246,6 +246,11 @@ namespace Vigia.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
+                    b.Property<string>("WebhookTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("webhook_token_hash");
+
                     b.HasKey("Id")
                         .HasName("pk_checks");
 
@@ -348,6 +353,31 @@ namespace Vigia.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_check_result_rollups_hour_start");
 
                     b.ToTable("check_result_rollups", (string)null);
+                });
+
+            modelBuilder.Entity("Vigia.Domain.Webhooks.WebhookReceipt", b =>
+                {
+                    b.Property<Guid>("CheckId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("check_id");
+
+                    b.Property<string>("Webhook")
+                        .HasMaxLength(63)
+                        .HasColumnType("character varying(63)")
+                        .HasColumnName("webhook");
+
+                    b.Property<long>("Count")
+                        .HasColumnType("bigint")
+                        .HasColumnName("count");
+
+                    b.Property<DateTimeOffset>("LastReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_received_at");
+
+                    b.HasKey("CheckId", "Webhook")
+                        .HasName("pk_webhook_receipts");
+
+                    b.ToTable("webhook_receipts", (string)null);
                 });
 
             modelBuilder.Entity("Vigia.Infrastructure.Identity.AppUser", b =>
@@ -506,6 +536,16 @@ namespace Vigia.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_check_result_rollups_checks_check_id");
+                });
+
+            modelBuilder.Entity("Vigia.Domain.Webhooks.WebhookReceipt", b =>
+                {
+                    b.HasOne("Vigia.Domain.Checks.Check", null)
+                        .WithMany()
+                        .HasForeignKey("CheckId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_webhook_receipts_checks_check_id");
                 });
 #pragma warning restore 612, 618
         }

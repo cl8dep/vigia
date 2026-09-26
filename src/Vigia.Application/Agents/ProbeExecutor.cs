@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Options;
 using Vigia.Application.Common.Exceptions;
 using Vigia.Application.Plugins;
+using Vigia.Application.Webhooks;
 using Vigia.Plugins;
 
 namespace Vigia.Application.Agents;
@@ -9,7 +10,12 @@ namespace Vigia.Application.Agents;
 /// <summary>
 /// <see cref="IProbeExecutor"/> that runs loaded check plugins with a timeout and error isolation.
 /// </summary>
-public sealed class ProbeExecutor(IPluginRegistry registry, ICheckContext context, IOptions<AgentOptions> options) : IProbeExecutor
+/// <param name="registry">Loaded plugins.</param>
+/// <param name="context">Host services shared by all probes.</param>
+/// <param name="options">Agent settings.</param>
+/// <param name="receipts">Webhook receipts; null on remote agents, where they do not exist.</param>
+public sealed class ProbeExecutor(IPluginRegistry registry, ICheckContext context, IOptions<AgentOptions> options, IWebhookReceiptStore? receipts = null)
+    : IProbeExecutor
 {
     /// <inheritdoc />
     public async Task<ProbeRecord> ExecuteAsync(CheckAssignment assignment, CancellationToken ct)
@@ -51,15 +57,33 @@ public sealed class ProbeExecutor(IPluginRegistry registry, ICheckContext contex
         cts.CancelAfter(timeout);
         try
         {
-            return await plugin.Check.ProbeAsync(config, context, cts.Token);
+            var probeContext = new ProbeContext(context, assignment.CheckId, plugin, receipts);
+            return RejectUndeclaredDimensions(await plugin.Check.ProbeAsync(config, probeContext, cts.Token), plugin);
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
             return ProbeResult.Error($"Probe exceeded {timeout.TotalSeconds}s.");
         }
+        catch (InvalidOperationException ex)
+        {
+            // Capability violations (undeclared service, receipts off the control plane) are the plugin's fault, not the target's.
+            return ProbeResult.Error(ex.Message);
+        }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             return ProbeResult.Error($"Plugin failed: {ex.Message}");
         }
+    }
+
+    private static ProbeResult RejectUndeclaredDimensions(ProbeResult result, CheckPlugin plugin)
+    {
+        var declared = plugin.Dimensions.Select(d => d.Name).ToHashSet(StringComparer.Ordinal);
+        var undeclared = result.Measurements.Select(m => m.Dimension).Where(d => !declared.Contains(d)).Distinct().ToList();
+        if (undeclared.Count == 0)
+        {
+            return result;
+        }
+
+        return ProbeResult.Error($"Plugin '{plugin.Id}' reported undeclared dimension(s) {string.Join(", ", undeclared)}. Declare them in check.dimensions.");
     }
 }

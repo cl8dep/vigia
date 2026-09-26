@@ -10,10 +10,16 @@
     <ProjectReference Include="..\..\src\Vigia.Api\Vigia.Api.csproj" />
     <!-- Build-order only: the plugin is loaded from artifacts/plugins, not referenced. -->
     <ProjectReference Include="..\..\plugins\Vigia.Check.Http\Vigia.Check.Http.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\plugins\Vigia.Check.Tcp\Vigia.Check.Tcp.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\plugins\Vigia.Check.Tls\Vigia.Check.Tls.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\plugins\Vigia.Check.Dns\Vigia.Check.Dns.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\plugins\Vigia.Check.Ping\Vigia.Check.Ping.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\plugins\Vigia.Check.Heartbeat\Vigia.Check.Heartbeat.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="JsonSchema.Net" />
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" />

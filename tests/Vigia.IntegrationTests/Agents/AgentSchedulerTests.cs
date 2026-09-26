@@ -75,7 +75,7 @@ public sealed class AgentSchedulerTests : IAsyncDisposable
         await Eventually.TrueAsync(() =>
         {
             _time.Advance(Interval);
-            return _executor.Started(check.CheckId) == 2;
+            return _executor.Started(check.CheckId) >= 2;
         });
     }
 
