@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <PluginId>vigia.check.http</PluginId>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The SDK is always resolved from the host; never ship it with the plugin. -->
+    <ProjectReference Include="..\..\src\Vigia.Plugins.Abstractions\Vigia.Plugins.Abstractions.csproj">
+      <Private>false</Private>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="plugin.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Import Project="..\Plugin.targets" />
+</Project>

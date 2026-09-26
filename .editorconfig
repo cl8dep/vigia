@@ -1,0 +1,29 @@
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+
+[*.{csproj,props,targets,json,yml,yaml,slnx}]
+indent_size = 2
+
+[*.cs]
+# Methods, constructors, operators and local functions always use block bodies.
+csharp_style_expression_bodied_methods = false:error
+csharp_style_expression_bodied_constructors = false:error
+csharp_style_expression_bodied_operators = false:error
+csharp_style_expression_bodied_local_functions = false:error
+dotnet_diagnostic.IDE0022.severity = error
+dotnet_diagnostic.IDE0021.severity = error
+dotnet_diagnostic.IDE0023.severity = error
+dotnet_diagnostic.IDE0024.severity = error
+dotnet_diagnostic.IDE0061.severity = error
+
+# One type per file is reviewed by hand; no built-in analyzer covers it.
+
+# EF Core migrations are generated; formatters and style rules skip them.
+[**/Migrations/*.cs]
+generated_code = true

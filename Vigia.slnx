@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/plugins/">
+    <Project Path="plugins/Vigia.Check.Http/Vigia.Check.Http.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Vigia.Api/Vigia.Api.csproj" />
+    <Project Path="src/Vigia.Application/Vigia.Application.csproj" />
+    <Project Path="src/Vigia.Domain/Vigia.Domain.csproj" />
+    <Project Path="src/Vigia.Infrastructure/Vigia.Infrastructure.csproj" />
+    <Project Path="src/Vigia.Plugins.Abstractions/Vigia.Plugins.Abstractions.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Vigia.IntegrationTests/Vigia.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

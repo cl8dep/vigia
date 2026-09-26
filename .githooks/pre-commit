@@ -1,0 +1,27 @@
+#!/bin/sh
+# Formats staged C# files and blocks commits that contain secrets.
+# Enable once per clone: git config core.hooksPath .githooks
+set -e
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+    echo "pre-commit: gitleaks is not installed (brew install gitleaks). Commit blocked." >&2
+    exit 1
+fi
+
+staged_cs=$(git diff --cached --name-only --diff-filter=ACMR -- '*.cs')
+
+if [ -n "$staged_cs" ]; then
+    # Re-staging formatted files would also stage unrelated edits, so partially staged files are refused.
+    partial=$(git diff --name-only -- $staged_cs)
+    if [ -n "$partial" ]; then
+        echo "pre-commit: these C# files have unstaged changes; stage or stash them first:" >&2
+        echo "$partial" >&2
+        exit 1
+    fi
+
+    echo "pre-commit: formatting $(echo "$staged_cs" | wc -l | tr -d ' ') C# file(s)"
+    dotnet format Vigia.slnx --include $staged_cs
+    git add -- $staged_cs
+fi
+
+exec gitleaks git --pre-commit --staged --redact --no-banner

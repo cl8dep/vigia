@@ -1,0 +1,12 @@
+<Project>
+  <!-- Copies the plugin build output to artifacts/plugins/<id>/<version>/ for local runs and tests. -->
+  <Target Name="StagePlugin" AfterTargets="Build">
+    <PropertyGroup>
+      <PluginStageDir>$(MSBuildThisFileDirectory)..\artifacts\plugins\$(PluginId)\$(Version)\</PluginStageDir>
+    </PropertyGroup>
+    <ItemGroup>
+      <PluginFiles Include="$(OutDir)**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PluginFiles)" DestinationFiles="@(PluginFiles->'$(PluginStageDir)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

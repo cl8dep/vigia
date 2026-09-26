@@ -1,0 +1,7 @@
+{
+  "id": "vigia.check.http",
+  "version": "1.0.0",
+  "sdk": "1.x",
+  "entry": "Vigia.Check.Http.dll",
+  "kinds": ["check"]
+}
