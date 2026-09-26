@@ -20,21 +20,36 @@ public sealed class HeartbeatCheck : Check<HeartbeatCheckConfig>
     /// <inheritdoc />
     public override async Task<ProbeResult> ProbeAsync(HeartbeatCheckConfig config, ICheckContext ctx, CancellationToken ct)
     {
-        var last = await ctx.GetRequiredService<IWebhookReceipts>().LastReceivedAsync(PingWebhook, ct);
+        var receipts = ctx.GetRequiredService<IWebhookReceipts>();
+        var last = await receipts.LastReceivedAsync(PingWebhook, ct);
+        var allowed = config.Every + config.Grace;
+        var now = ctx.Time.GetUtcNow();
+
         if (last is null)
         {
-            // Not down: a new check has not had its first chance to ping yet.
-            return ProbeResult.Error("No ping received yet.");
+            // Never pinged: measure from when the check started listening, so a job that never runs still goes down.
+            var waited = now - await receipts.ListeningSinceAsync(ct);
+            var silence = new Measurement(SinceLastPing, waited.TotalSeconds);
+            if (waited <= allowed)
+            {
+                return ProbeResult.Error($"Waiting for the first ping ({Minutes(waited)} of {Minutes(allowed)} min).");
+            }
+
+            return ProbeResult.Down($"No ping received since the check was created {Minutes(waited)} min ago; expected within {Minutes(allowed)} min.", silence);
         }
 
-        var age = ctx.Time.GetUtcNow() - last.Value;
+        var age = now - last.Value;
         var since = new Measurement(SinceLastPing, age.TotalSeconds);
-        var allowed = config.Every + config.Grace;
         if (age > allowed)
         {
-            return ProbeResult.Down($"Last ping {age.TotalMinutes:0.#} min ago; expected within {allowed.TotalMinutes:0.#} min.", since);
+            return ProbeResult.Down($"Last ping {Minutes(age)} min ago; expected within {Minutes(allowed)} min.", since);
         }
 
         return ProbeResult.Up(since);
+    }
+
+    private static string Minutes(TimeSpan value)
+    {
+        return value.TotalMinutes.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
     }
 }

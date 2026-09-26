@@ -22,6 +22,14 @@ public sealed class DbWebhookReceiptStore(IServiceScopeFactory scopes) : IWebhoo
     }
 
     /// <inheritdoc />
+    public async Task<DateTimeOffset> ListeningSinceAsync(Guid checkId, CancellationToken ct)
+    {
+        await using var scope = scopes.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        return await db.Checks.Where(c => c.Id == checkId).Select(c => c.CreatedAt).SingleAsync(ct);
+    }
+
+    /// <inheritdoc />
     public async Task RecordAsync(Guid checkId, string webhook, DateTimeOffset at, CancellationToken ct)
     {
         await using var scope = scopes.CreateAsyncScope();

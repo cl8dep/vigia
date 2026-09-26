@@ -19,4 +19,10 @@ public sealed class CheckWebhookReceipts(Guid checkId, CheckPlugin plugin, IWebh
 
         return store.LastReceivedAsync(checkId, webhook, ct);
     }
+
+    /// <inheritdoc />
+    public Task<DateTimeOffset> ListeningSinceAsync(CancellationToken ct)
+    {
+        return store.ListeningSinceAsync(checkId, ct);
+    }
 }

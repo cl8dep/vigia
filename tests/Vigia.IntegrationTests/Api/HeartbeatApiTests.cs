@@ -3,6 +3,8 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Vigia.Application.Agents;
+using Vigia.Domain.Checks;
 using Vigia.Infrastructure.Persistence;
 using Vigia.IntegrationTests.Support;
 
@@ -84,12 +86,65 @@ public sealed class HeartbeatApiTests(VigiaApiFactory factory)
     }
 
     [Fact]
-    public async Task No_ping_yet_is_an_error_and_a_stale_ping_is_down()
+    public async Task Waiting_for_the_first_ping_is_an_error_not_down()
     {
         var client = await factory.CreateAuthenticatedClientAsync(Ct);
         var (slug, _) = await CreateAsync(client);
 
-        Assert.Equal("error", (await ProbeAsync(client, slug)).GetProperty("outcome").GetString());
+        var waiting = await ProbeAsync(client, slug);
+
+        Assert.Equal("error", waiting.GetProperty("outcome").GetString());
+        Assert.Contains("Waiting for the first ping", waiting.GetProperty("message").GetString());
+    }
+
+    [Fact]
+    public async Task Never_pinged_past_the_first_period_is_down()
+    {
+        var client = await factory.CreateAuthenticatedClientAsync(Ct);
+        var (slug, _) = await CreateAsync(client);
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.ExecuteSqlRawAsync(
+                "UPDATE checks SET created_at = {0} WHERE slug = {1}", [DateTimeOffset.UtcNow.AddMinutes(-10), slug], Ct);
+        }
+
+        var result = await ProbeAsync(client, slug);
+
+        Assert.Equal("down", result.GetProperty("outcome").GetString());
+        Assert.Contains("No ping received since the check was created", result.GetProperty("message").GetString());
+        Assert.InRange(result.GetProperty("measurements").GetProperty("since-last-ping").GetDouble(), 590, 700);
+    }
+
+    [Fact]
+    public async Task A_job_that_never_runs_opens_an_alert()
+    {
+        var client = await factory.CreateAuthenticatedClientAsync(Ct);
+        var (slug, _) = await CreateAsync(client);
+        var rule = await client.PostAsJsonAsync("/api/v1/rules", new { slug = $"r-{Guid.NewGuid():N}"[..20], check = slug, when = new { outcome = "down" } }, Ct);
+        rule.EnsureSuccessStatusCode();
+
+        Check check;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await db.Database.ExecuteSqlRawAsync("UPDATE checks SET created_at = {0} WHERE slug = {1}", [DateTimeOffset.UtcNow.AddMinutes(-10), slug], Ct);
+            check = await db.Checks.AsNoTracking().SingleAsync(c => c.Slug == slug, Ct);
+        }
+
+        // Same path as the built-in agent: probe, then ingest.
+        var record = await factory.Services.GetRequiredService<IProbeExecutor>().ExecuteAsync(CheckAssignment.From(check), Ct);
+        await factory.Services.GetRequiredService<IResultSink>().WriteAsync(record, Ct);
+
+        var alert = Assert.Single(await client.GetFromJsonAsync<JsonElement[]>($"/api/v1/alerts?check={slug}", Ct) ?? []);
+        Assert.Equal("firing", alert.GetProperty("state").GetString());
+        Assert.Contains("No ping received since the check was created", alert.GetProperty("message").GetString());
+    }
+
+    [Fact]
+    public async Task A_stale_ping_is_down()
+    {
+        var client = await factory.CreateAuthenticatedClientAsync(Ct);
+        var (slug, _) = await CreateAsync(client);
 
         await using (var scope = factory.Services.CreateAsyncScope())
         {
