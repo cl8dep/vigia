@@ -1,9 +1,7 @@
-using System.Text.Json;
 using Vigia.Application.Common.Exceptions;
 using Vigia.Application.Common.Json;
 using Vigia.Application.Plugins;
 using Vigia.Domain.Checks;
-using Vigia.Domain.Common;
 using Vigia.Domain.Tags;
 
 namespace Vigia.Application.Placement;
@@ -23,36 +21,12 @@ public static class CheckWorkersSpecApplier
             throw new ValidationException("workers.match", $"Plugin '{plugin.Id}' receives webhooks, so its checks run on the control plane only.");
         }
 
-        check.PlaceOn(selector, ParseQuorum(spec?.Quorum));
+        check.PlaceOn(selector, QuorumJson.Parse(spec?.Quorum, "workers.quorum"));
     }
 
     /// <summary>The quorum in the shape clients write it.</summary>
     public static CheckWorkersDto ToDto(Check check)
     {
         return new CheckWorkersDto(TagSelectorJson.Write(check.WorkerSelector), check.Quorum?.ToString());
-    }
-
-    private static Quorum? ParseQuorum(JsonElement? quorum)
-    {
-        if (quorum is null || quorum.Value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-        {
-            return null;
-        }
-
-        var text = quorum.Value.ValueKind switch
-        {
-            JsonValueKind.Number => quorum.Value.GetRawText(),
-            JsonValueKind.String => quorum.Value.GetString()!,
-            _ => throw new ValidationException("workers.quorum", "Use a count such as 2, a percentage such as \"50%\", or \"majority\"."),
-        };
-
-        try
-        {
-            return Quorum.Parse(text);
-        }
-        catch (DomainException ex)
-        {
-            throw new ValidationException("workers.quorum", ex.Message);
-        }
     }
 }

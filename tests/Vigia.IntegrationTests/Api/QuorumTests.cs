@@ -90,7 +90,19 @@ public sealed class QuorumTests(VigiaApiFactory factory)
         Assert.Equal("resolved", Assert.Single(await AlertsAsync(client, check)).GetProperty("state").GetString());
     }
 
-    private async Task<(HttpClient Client, string Check, (string Slug, string Region)[] Workers)> SetUpAsync(object? quorum, int online = 3)
+    [Fact]
+    public async Task Rule_quorum_overrides_the_check_quorum()
+    {
+        var (client, check, workers) = await SetUpAsync(quorum: null, ruleQuorum: 1);
+
+        await CycleAsync(check, DateTimeOffset.UtcNow.AddHours(-1), (workers[0], Outcome.Down), (workers[1], Outcome.Up), (workers[2], Outcome.Up));
+
+        Assert.Contains("1 of 3", Assert.Single(await AlertsAsync(client, check)).GetProperty("message").GetString());
+        var rule = (await client.GetFromJsonAsync<JsonElement[]>("/api/v1/rules", Ct))!.Single(r => r.GetProperty("check").GetString() == check);
+        Assert.Equal("1", rule.GetProperty("quorum").GetString());
+    }
+
+    private async Task<(HttpClient Client, string Check, (string Slug, string Region)[] Workers)> SetUpAsync(object? quorum, int online = 3, object? ruleQuorum = null)
     {
         var client = await factory.CreateAuthenticatedClientAsync(Ct);
         var tag = $"q-{Guid.NewGuid():N}"[..12];
@@ -121,7 +133,7 @@ public sealed class QuorumTests(VigiaApiFactory factory)
             workers = new { match = new { quorum = tag }, quorum },
         }, Ct);
         created.EnsureSuccessStatusCode();
-        (await client.PostAsJsonAsync("/api/v1/rules", new { slug = $"qr-{Guid.NewGuid():N}"[..16], check, when = new { outcome = "down" } }, Ct)).EnsureSuccessStatusCode();
+        (await client.PostAsJsonAsync("/api/v1/rules", new { slug = $"qr-{Guid.NewGuid():N}"[..16], check, when = new { outcome = "down" }, quorum = ruleQuorum }, Ct)).EnsureSuccessStatusCode();
         return (client, check, workers);
     }
 

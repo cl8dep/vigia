@@ -16,6 +16,12 @@ public sealed class Worker : Entity
     {
     }
 
+    /// <inheritdoc />
+    protected override TaggedEntity TagKind
+    {
+        get { return TaggedEntity.Worker; }
+    }
+
     /// <summary>Creates a worker.</summary>
     /// <exception cref="DomainException">The slug, name or region is invalid.</exception>
     public Worker(string slug, string name, string? region, bool builtIn, ManagedBy managedBy)

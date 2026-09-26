@@ -17,9 +17,12 @@ public static partial class TagRules
     /// <summary>Maximum value length.</summary>
     public const int MaxValueLength = 255;
 
-    /// <summary>Validates user-supplied tags. System keys are rejected: the system derives them.</summary>
+    /// <summary>
+    /// Validates tags written by a user on an entity: user keys, plus assignable system tags that apply to the entity
+    /// with a value of the right kind. Reconciled and computed system tags are rejected: the system owns them.
+    /// </summary>
     /// <exception cref="DomainException">A key or value breaks the rules, or there are too many tags.</exception>
-    public static void ValidateUserTags(IReadOnlyDictionary<string, string?> tags)
+    public static void ValidateWrittenTags(IReadOnlyDictionary<string, string?> tags, TaggedEntity entity)
     {
         if (tags.Count > MaxTagsPerEntity)
         {
@@ -30,7 +33,8 @@ public static partial class TagRules
         {
             if (SystemTags.IsReserved(key))
             {
-                throw new DomainException($"Tag '{key}' is in the reserved '{SystemTags.Prefix}' namespace; the system sets those.");
+                ValidateAssignable(key, value, entity);
+                continue;
             }
 
             ValidateUserKey(key);
@@ -44,9 +48,9 @@ public static partial class TagRules
     {
         if (SystemTags.IsReserved(key))
         {
-            if (!SystemTags.All.Contains(key))
+            if (SystemTags.Find(key) is null)
             {
-                throw new DomainException($"Unknown system tag '{key}'. Known: {string.Join(", ", SystemTags.All)}.");
+                throw new DomainException($"Unknown system tag '{key}'. Known: {string.Join(", ", SystemTags.All.Select(d => d.Key))}.");
             }
 
             return;
@@ -63,6 +67,34 @@ public static partial class TagRules
         {
             throw new DomainException($"The value of tag '{key}' exceeds {MaxValueLength} characters.");
         }
+    }
+
+    private static void ValidateAssignable(string key, string? value, TaggedEntity entity)
+    {
+        var definition = SystemTags.Find(key)
+            ?? throw new DomainException($"Unknown system tag '{key}'. The '{SystemTags.Prefix}' namespace is reserved.");
+
+        if (definition.Assignment != TagAssignment.Assignable)
+        {
+            throw new DomainException($"Tag '{key}' is set by the system and cannot be written.");
+        }
+
+        if (!definition.AppliesTo.Contains(entity))
+        {
+            throw new DomainException($"Tag '{key}' does not apply to {entity.ToString().ToLowerInvariant()}s.");
+        }
+
+        switch (definition.ValueKind)
+        {
+            case TagValueKind.Flag when value is not null:
+                throw new DomainException($"Tag '{key}' is a flag; give it no value (null).");
+            case TagValueKind.Value when value is null:
+                throw new DomainException($"Tag '{key}' needs a value.");
+            case TagValueKind.Vocabulary when value is null || !(definition.AllowedValues ?? []).Contains(value):
+                throw new DomainException($"Tag '{key}' must be one of: {string.Join(", ", definition.AllowedValues ?? [])}.");
+        }
+
+        ValidateValue(key, value);
     }
 
     private static void ValidateUserKey(string key)

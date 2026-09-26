@@ -15,6 +15,7 @@ namespace Vigia.Application.Rules;
 /// <param name="When">Condition.</param>
 /// <param name="For">Consecutive matching results to fire.</param>
 /// <param name="RecoverAfter">Consecutive non-matching results to resolve.</param>
+/// <param name="Quorum">Quorum override, or null to use the check's.</param>
 /// <param name="Severity">Alert severity.</param>
 /// <param name="Enabled">Whether it is evaluated.</param>
 /// <param name="ManagedBy">Owning front end.</param>
@@ -26,6 +27,7 @@ public sealed record RuleDto(
     RuleWhen When,
     int For,
     int RecoverAfter,
+    string? Quorum,
     string Severity,
     bool Enabled,
     string ManagedBy)
@@ -48,6 +50,7 @@ public sealed record RuleDto(
             when,
             rule.For,
             rule.RecoverAfter,
+            rule.Quorum?.ToString(),
             JsonNamingPolicy.CamelCase.ConvertName(rule.Severity.ToString()),
             rule.Enabled,
             JsonNamingPolicy.CamelCase.ConvertName(rule.ManagedBy.ToString()));

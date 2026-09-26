@@ -1,3 +1,4 @@
+using Vigia.Domain.Checks;
 using Vigia.Domain.Common;
 using Vigia.Domain.Tags;
 
@@ -15,6 +16,12 @@ public sealed class Rule : Entity
 {
     private Rule()
     {
+    }
+
+    /// <inheritdoc />
+    protected override TaggedEntity TagKind
+    {
+        get { return TaggedEntity.Rule; }
     }
 
     /// <summary>Creates a rule.</summary>
@@ -45,6 +52,9 @@ public sealed class Rule : Entity
 
     /// <summary>Consecutive non-matching results needed to resolve.</summary>
     public int RecoverAfter { get; private set; } = 1;
+
+    /// <summary>Workers that must agree for this rule, overriding the check's quorum; null uses the check's.</summary>
+    public Quorum? Quorum { get; private set; }
 
     /// <summary>Severity of the alerts this rule creates.</summary>
     public Severity Severity { get; private set; }
@@ -97,6 +107,12 @@ public sealed class Rule : Entity
         For = @for;
         RecoverAfter = recoverAfter;
         Severity = severity;
+    }
+
+    /// <summary>Overrides the check's quorum for this rule, for example quorum 1 as warning and majority as critical.</summary>
+    public void OverrideQuorum(Quorum? quorum)
+    {
+        Quorum = quorum;
     }
 
     /// <summary>Whether this rule applies to a check with the given id and tags.</summary>

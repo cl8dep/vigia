@@ -26,6 +26,9 @@ public record RuleSpec
     /// <summary>Consecutive non-matching results to resolve. Default 1.</summary>
     public int? RecoverAfter { get; init; }
 
+    /// <summary>Overrides the check's quorum for this rule: a count, a percentage or <c>majority</c>.</summary>
+    public System.Text.Json.JsonElement? Quorum { get; init; }
+
     /// <summary><c>info</c>, <c>warning</c> or <c>critical</c>. Default <c>warning</c>.</summary>
     public string? Severity { get; init; }
 

@@ -65,12 +65,18 @@ public abstract class Entity
         Name = name.Trim();
     }
 
-    /// <summary>Replaces the user tags. System tags are kept.</summary>
-    /// <exception cref="DomainException">A tag is invalid or uses the reserved namespace.</exception>
+    /// <summary>What kind of entity this is, so system tags know whether they apply.</summary>
+    protected abstract TaggedEntity TagKind { get; }
+
+    /// <summary>
+    /// Replaces the tags users own: user tags and assignable system tags (such as <c>vigia:external</c>).
+    /// Reconciled system tags are kept.
+    /// </summary>
+    /// <exception cref="DomainException">A tag is invalid, reconciled, or does not apply to this entity.</exception>
     public void SetTags(IReadOnlyDictionary<string, string?> tags)
     {
-        TagRules.ValidateUserTags(tags);
-        var system = Tags.Where(t => SystemTags.IsReserved(t.Key));
+        TagRules.ValidateWrittenTags(tags, TagKind);
+        var system = Tags.Where(t => SystemTags.IsReconciled(t.Key));
         Tags = new Dictionary<string, string?>(tags.Concat(system), StringComparer.Ordinal);
         if (Tags.Count > TagRules.MaxTagsPerEntity)
         {

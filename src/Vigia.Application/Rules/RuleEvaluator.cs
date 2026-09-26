@@ -82,11 +82,11 @@ public sealed class RuleEvaluator(
             .ToDictionaryAsync(a => a.RuleId, ct);
 
         var where = await WorkerLabelsAsync(streams.Keys, ct);
-        var quorum = check.Quorum ?? Quorum.Parse(alerting.Value.DefaultQuorum);
+        var checkQuorum = check.Quorum ?? Quorum.Parse(alerting.Value.DefaultQuorum);
 
         foreach (var rule in rules)
         {
-            Evaluate(rule, check, result, streams, quorum, firing.GetValueOrDefault(rule.Id), plugin, where);
+            Evaluate(rule, check, result, streams, rule.Quorum ?? checkQuorum, firing.GetValueOrDefault(rule.Id), plugin, where);
         }
     }
 

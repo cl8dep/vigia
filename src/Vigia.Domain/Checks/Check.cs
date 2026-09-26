@@ -18,6 +18,12 @@ public sealed class Check : Entity
     {
     }
 
+    /// <inheritdoc />
+    protected override TaggedEntity TagKind
+    {
+        get { return TaggedEntity.Check; }
+    }
+
     /// <summary>Creates a check.</summary>
     /// <param name="slug">Stable identity.</param>
     /// <param name="name">Display name.</param>

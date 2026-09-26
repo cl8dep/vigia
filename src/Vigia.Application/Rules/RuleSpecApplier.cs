@@ -57,6 +57,8 @@ public static class RuleSpecApplier
             throw new ValidationException("when", ex.Message);
         }
 
+        rule.OverrideQuorum(QuorumJson.Parse(spec.Quorum, "quorum"));
+
         if (spec.Enabled ?? true)
         {
             rule.Enable();

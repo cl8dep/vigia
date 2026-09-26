@@ -24,6 +24,9 @@ public sealed class RuleConfiguration : IEntityTypeConfiguration<Rule>
         builder.Property(r => r.Selector).HasColumnType("jsonb").HasConversion(new TagSelectorConverter(), new TagSelectorComparer());
         builder.Property(r => r.Condition).HasConversion<string>().HasMaxLength(10);
         builder.Property(r => r.Dimension).HasMaxLength(Slug.MaxLength);
+        builder.Property(r => r.Quorum)
+            .HasMaxLength(10)
+            .HasConversion(q => q!.ToString(), s => Quorum.Parse(s));
         builder.Property(r => r.Severity).HasConversion<string>().HasMaxLength(10);
         builder.Property(r => r.ManagedBy).HasConversion<string>().HasMaxLength(20);
 
