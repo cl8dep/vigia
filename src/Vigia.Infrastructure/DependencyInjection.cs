@@ -74,6 +74,7 @@ public static class DependencyInjection
         services.Configure<WorkerOptions>(configuration.GetSection(WorkerOptions.Section));
         services.AddSingleton<IProbeExecutor, ProbeExecutor>();
         services.AddSingleton<IAssignmentSource, DbAssignmentSource>();
+        services.Configure<AlertingOptions>(configuration.GetSection(AlertingOptions.Section));
         services.AddScoped<RuleEvaluator>();
         services.AddScoped<ResultIngestor>();
         services.AddSingleton<IResultSink, DbResultSink>();

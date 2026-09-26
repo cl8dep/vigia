@@ -23,6 +23,7 @@ Self-hosted monitoring, on-call and AI-assisted incident investigation. Working 
 - **Built-in worker.** Probes every enabled check on its interval with bounded concurrency, jitter and no overlapping probes. Emits metrics on meter `Vigia.Worker`.
 - **Results.** Every probe is stored with exact timestamps. Hourly rollups keep per-dimension min / avg / max / p95. Raw results are kept 14 days, rollups 400 days.
 - **Workers.** Remote workers are registered by an admin, enroll once with a one-time token and authenticate with their own credential on a separate API (`/worker/v1`). The built-in worker registers itself with `vigia:builtin` and `vigia:region`.
+- **Quorum.** With several workers each keeps its own streak; a rule fires when the check's quorum (count, percentage or `majority`, the default) of online eligible workers fail it, and says where: "(failing from eu-west, us-east: 2 of 3)".
 - **Placement.** Checks pick workers with `workers.match` (a tag selector over worker tags) and set a `quorum`. Each check reports its placement: `ok`, `unschedulable` (no worker matches) or `workers-offline`. Heartbeat checks stay on the control plane.
 - **Tags.** `key` or `key:value` on checks and rules, with reserved system tags such as `vigia:plugin`.
 - **Rules and alerts.** A rule targets one check or a tag selector (AND across keys, OR within a key's values, `null` for key present; `vigia:plugin` matches the plugin id) and fires on `outcome: down` or a dimension `above` / `below` a threshold, after `for` consecutive results; it resolves after `recoverAfter`. Rules are additive. One firing alert per rule and check: new results update it (message, occurrences) instead of opening another. Error results neither fire nor recover. Results and alert changes are saved in one transaction, serialized per check.
@@ -96,6 +97,7 @@ OpenAPI document at `/openapi/v1.json`.
 | `Plugins` | `Path` | `plugins` |
 | `Auth` | `OpenSignUp` | `false` |
 | `Worker` | `Name`, `Region`, `BuiltInEnabled`, `MaxConcurrency`, `RefreshInterval`, `InitialJitter`, `ProbeTimeout` | `builtin`, `local`, `true`, `50`, `10s`, `10s`, `30s` |
+| `Alerting` | `DefaultQuorum` | `majority` |
 | `Retention` | `Enabled`, `RunInterval`, `RawResults`, `Rollups`, `RollupLookback` | `true`, `1h`, `14d`, `400d`, `48h` |
 
 ## Writing a check plugin

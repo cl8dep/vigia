@@ -245,7 +245,8 @@ public sealed class RulesAndAlertsTests(VigiaApiFactory factory)
 
         var at = NextTick();
         var measurements = latency is null ? new Dictionary<string, double>() : new Dictionary<string, double> { ["latency"] = latency.Value };
-        var record = new ProbeRecord(Guid.CreateVersion7(at), checkId, "test", outcome, measurements, message, 1, at);
+        // Reported as the built-in worker: a single-node install, independent of which workers other tests left online.
+        var record = new ProbeRecord(Guid.CreateVersion7(at), checkId, "builtin", outcome, measurements, message, 1, at);
         await factory.Services.GetRequiredService<IResultSink>().WriteAsync(record, Ct);
     }
 

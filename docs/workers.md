@@ -48,10 +48,11 @@ workers:
 
 ## Quorum
 
-- Configured per check (`quorum`: a number or a percentage). When a check does not set it, the global `Workers:DefaultQuorum` applies.
+- Configured per check (`quorum`: a count, a percentage, or `majority`). When a check does not set it, `Alerting:DefaultQuorum` applies (default `majority`: more than half; `50%` rounds up and is not a majority for even counts).
 - Each worker keeps its own streak per rule: a worker "fails" a rule when its last `for` results match the condition.
-- An alert fires when at least `quorum` of the workers with fresh results fail the rule, and resolves when fewer than `quorum` still fail (each worker recovering after `recoverAfter` non-matching results).
-- A worker without a result in the last two intervals does not count either way: lost visibility from that region is not an outage.
+- The workers that count are the **eligible workers that are online** (heartbeat within two minutes) plus any worker with a result in the last two intervals. An online worker that has not reported the check yet counts as not failing, so the first result after a deploy cannot fire alone. A worker that stopped reporting is lost visibility, not an outage.
+- An alert fires when at least `quorum` of those workers fail the rule, and resolves when fewer than `quorum` have not recovered (each recovering after `recoverAfter` non-matching results).
+- Webhook results (heartbeat pings) belong to the built-in worker's stream: both are the control plane.
 - Alert messages name where it fails: "down from eu-west, us-east (2 of 3)".
 
 ## Build order
@@ -60,7 +61,7 @@ workers:
 2. Tags replace labels, with `vigia:*` reconciliation (done: `vigia:plugin`; worker tags come with step 3).
 3. Worker entity, enrollment tokens, worker credentials; built-in worker registered as a worker with `vigia:builtin` (done).
 4. Placement (`workers.match`) and per-worker assignments; `unschedulable` / `workers-offline` states (done).
-5. Quorum in rule evaluation.
+5. Quorum in rule evaluation (done).
 6. Worker protocol (SignalR control + HTTPS data) and the `Vigia.Worker` binary reusing `WorkerScheduler`, with a local result buffer for degraded mode.
 7. Plugin distribution from the control plane; fallback notifications (after notifiers exist).
 

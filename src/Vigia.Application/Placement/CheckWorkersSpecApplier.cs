@@ -43,7 +43,7 @@ public static class CheckWorkersSpecApplier
         {
             JsonValueKind.Number => quorum.Value.GetRawText(),
             JsonValueKind.String => quorum.Value.GetString()!,
-            _ => throw new ValidationException("workers.quorum", "Use a count such as 2 or a percentage such as \"50%\"."),
+            _ => throw new ValidationException("workers.quorum", "Use a count such as 2, a percentage such as \"50%\", or \"majority\"."),
         };
 
         try
