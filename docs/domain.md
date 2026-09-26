@@ -23,8 +23,8 @@ Based on Piro's domain (`src/Piro.Domain`, commit `7761090`), keeping what works
 | 3 | `Alert` holds escalation state (current step, attempts, exhausted) | Mixes "what happened" with "who are we paging" | Split into `Alert` and `Escalation` |
 | 4 | No teams | No ownership; routing is service -> policy only | `Team` owns services, schedules, policies |
 | 5 | Escalation steps only target schedules | Cannot page a specific user or a channel | Step targets: schedule, user, team, channel |
-| 6 | Alert rules live on one check | Same rule repeated for every TLS check | Rules can target a check or a selector (`plugin=tls`) |
-| 7 | Tags need a join table per entity (`ServiceTag`, `CheckTag`, `WorkerTag`) | Every new entity needs new tables | `labels` column (`jsonb` / JSON) on every entity, one selector engine |
+| 6 | Alert rules live on one check | Same rule repeated for every TLS check | Rules can target a check or a tag selector (`vigia:plugin: vigia.check.tls`) |
+| 7 | Tags need a join table per entity (`ServiceTag`, `CheckTag`, `WorkerTag`) | Every new entity needs new tables | `tags` column (`jsonb` / JSON) on every entity, one selector engine. Tags follow Piro: `key` or `key:value`, `vigia:*` reserved and derived. See [workers.md](workers.md) |
 | 8 | `CurrentStatus`, `PublicStatus`, `DefaultStatus` stored on service | Derived state stored as truth, easy to drift | Store inputs (health, maintenance, manual override); derive status |
 | 9 | Timestamps mix `long`, `DateTime`, `DateTimeOffset` | Bugs at every boundary | `DateTimeOffset` UTC everywhere |
 | 10 | `int` ids | Not stable across instances for config as code | UUIDv7 ids + human `slug` as config-as-code identity |
@@ -65,7 +65,7 @@ Every configurable entity has:
 id          uuid v7
 slug        unique, stable, used by YAML
 name
-labels      map<string,string>
+tags        map<string,string?>   key or key:value; vigia:* derived by the system
 managedBy   ui | yaml | terraform
 createdAt, updatedAt   DateTimeOffset UTC
 ```
@@ -75,12 +75,12 @@ createdAt, updatedAt   DateTimeOffset UTC
 - **Team**: owns things. Members with a role inside the team.
 - **Service**: what users care about. `kind: internal | external`. Includes checks by reference or selector. Has dependencies. Health is derived.
 - **Dependency**: service -> service, with propagation mode.
-- **Change**: something that changed at a point in time (deploy, config change, feature flag, provider notice). Comes from source plugins or the API. Linked to services by labels.
+- **Change**: something that changed at a point in time (deploy, config change, feature flag, provider notice). Comes from source plugins or the API. Linked to services by tags.
 
 ### Monitoring
 
 - **Check**: instance of a check plugin. `plugin`, `config` (validated by the plugin schema), `interval`, `agentSelector`, `quorum`.
-- **Worker**: registered worker. Labels (`region`, `network`), last seen, version, mode (`connected | degraded`).
+- **Worker**: registered worker. Tags (`region`, `network`, `vigia:region`, `vigia:builtin`), last seen, version, mode (`connected | degraded`).
 - **Result**: one probe from one worker. Outcome (`up | down | error`), dimensions, message, timestamp. Time-series storage, retention policy.
 - **Rule**: condition over a dimension (`latency > 800ms for 3`), severity, targets a check or a selector.
 
@@ -137,6 +137,6 @@ Source plugin ─┘                              │
                                               └──> Investigation (async, v1)
 ```
 
-- Fingerprint default: `source + rule/check + labels subset`. Source plugins can override.
+- Fingerprint default: `source + rule/check + tags subset`. Source plugins can override.
 - Alert resolves when the underlying rule recovers (with success threshold) or the source sends resolve.
 - Alerts never create incidents automatically (same as Piro); an incident is a human decision. Open: allow an opt-in rule for critical services.

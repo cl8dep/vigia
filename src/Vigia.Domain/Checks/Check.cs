@@ -1,4 +1,5 @@
 using Vigia.Domain.Common;
+using Vigia.Domain.Tags;
 
 namespace Vigia.Domain.Checks;
 
@@ -35,6 +36,7 @@ public sealed class Check : Entity
         }
 
         Plugin = plugin;
+        SetSystemTag(SystemTags.Plugin, plugin);
         Reconfigure(pluginVersion, configJson, interval);
         Enabled = true;
     }

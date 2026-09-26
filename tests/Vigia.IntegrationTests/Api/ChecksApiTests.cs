@@ -39,7 +39,7 @@ public sealed class ChecksApiTests(VigiaApiFactory factory)
             plugin = "vigia.check.http",
             config = new { url = "http://127.0.0.1:1/health" },
             interval = "30s",
-            labels = new { service = "booking-api" },
+            tags = new { service = "booking-api" },
         }, Ct);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -54,7 +54,8 @@ public sealed class ChecksApiTests(VigiaApiFactory factory)
         Assert.Equal("GET", config.GetProperty("method").GetString());
         Assert.Equal("10s", config.GetProperty("timeout").GetString());
         Assert.Equal(TimeSpan.FromSeconds(30), check.Interval);
-        Assert.Equal("booking-api", check.Labels["service"]);
+        Assert.Equal("booking-api", check.Tags["service"]);
+        Assert.Equal("vigia.check.http", check.Tags["vigia:plugin"]);
         Assert.NotEqual(default, check.CreatedAt);
     }
 
@@ -183,7 +184,7 @@ public sealed class ChecksApiTests(VigiaApiFactory factory)
             name = "Renamed",
             config = new { url = "http://127.0.0.1:1/b", method = "HEAD" },
             interval = "5m",
-            labels = new { env = "prod" },
+            tags = new { env = "prod" },
             enabled = false,
         }, Ct);
 
@@ -193,7 +194,7 @@ public sealed class ChecksApiTests(VigiaApiFactory factory)
         Assert.Equal("http://127.0.0.1:1/b", check.GetProperty("config").GetProperty("url").GetString());
         Assert.Equal("HEAD", check.GetProperty("config").GetProperty("method").GetString());
         Assert.Equal("5m", check.GetProperty("interval").GetString());
-        Assert.Equal("prod", check.GetProperty("labels").GetProperty("env").GetString());
+        Assert.Equal("prod", check.GetProperty("tags").GetProperty("env").GetString());
         Assert.False(check.GetProperty("enabled").GetBoolean());
     }
 

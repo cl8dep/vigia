@@ -132,14 +132,17 @@ Checks declare the measurements they produce in `check.dimensions` (name, direct
 
 Code reports values by name: `new Measurement("days-to-expiry", 12.5)`. Alert rules reference dimensions by name, so a new check type gets alerting for free.
 
-## Labels (entity attributes)
+## Tags (entity attributes)
 
-Separate from C# attributes: every entity (service, check, worker, alert, user) carries `key=value` labels. Labels drive:
+Separate from C# attributes: every entity (service, check, worker, alert, user) carries tags, `key` (flag) or `key:value`, following Piro's model. `vigia:*` is reserved and derived by the system (`vigia:plugin` on checks, `vigia:builtin` and `vigia:region` on workers). Tag selectors (AND across keys, OR within a key's values, `null` for "key present") drive:
 
-- Which workers run a check (`network=flystern-vpc`).
-- Which escalation policy an alert routes to (`team=payments`).
-- Which context providers the investigation uses (`repo=flystern/api`).
+- Which workers run a check (`workers.match: { network: flystern-vpc }`).
+- Which checks a rule targets (`selector: { "vigia:plugin": vigia.check.tls }`).
+- Which escalation policy an alert routes to (`team: payments`).
+- Which context providers the investigation uses (`repo: flystern/api`).
 - Filtering in UI and API.
+
+See [workers.md](workers.md) for the full rules.
 
 ## Loading: plugins are assemblies in a folder
 

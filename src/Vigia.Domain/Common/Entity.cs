@@ -1,7 +1,9 @@
+using Vigia.Domain.Tags;
+
 namespace Vigia.Domain.Common;
 
 /// <summary>
-/// Base for configurable entities: identity, slug, labels, ownership and timestamps.
+/// Base for configurable entities: identity, slug, tags, ownership and timestamps.
 /// </summary>
 public abstract class Entity
 {
@@ -36,8 +38,11 @@ public abstract class Entity
 
     public string Name { get; private set; } = string.Empty;
 
-    /// <summary>Free-form <c>key=value</c> labels used by selectors (routing, worker placement, investigation).</summary>
-    public Dictionary<string, string> Labels { get; private set; } = [];
+    /// <summary>
+    /// Tags: <c>key</c> (value null) or <c>key:value</c>. Includes system tags (<c>vigia:*</c>) derived from the entity.
+    /// Used by selectors for routing, worker placement and investigation.
+    /// </summary>
+    public Dictionary<string, string?> Tags { get; private set; } = [];
 
     /// <summary>Front end that owns this entity.</summary>
     public ManagedBy ManagedBy { get; private set; }
@@ -60,10 +65,23 @@ public abstract class Entity
         Name = name.Trim();
     }
 
-    /// <summary>Replaces all labels.</summary>
-    public void SetLabels(IReadOnlyDictionary<string, string> labels)
+    /// <summary>Replaces the user tags. System tags are kept.</summary>
+    /// <exception cref="DomainException">A tag is invalid or uses the reserved namespace.</exception>
+    public void SetTags(IReadOnlyDictionary<string, string?> tags)
     {
-        Labels = new Dictionary<string, string>(labels);
+        TagRules.ValidateUserTags(tags);
+        var system = Tags.Where(t => SystemTags.IsReserved(t.Key));
+        Tags = new Dictionary<string, string?>(tags.Concat(system), StringComparer.Ordinal);
+        if (Tags.Count > TagRules.MaxTagsPerEntity)
+        {
+            throw new DomainException($"At most {TagRules.MaxTagsPerEntity} tags per entity, system tags included.");
+        }
+    }
+
+    /// <summary>Sets a system tag. Only for facts the entity itself derives.</summary>
+    protected void SetSystemTag(string key, string? value)
+    {
+        Tags[key] = value;
     }
 
     /// <summary>Called by persistence; not for use in application code.</summary>

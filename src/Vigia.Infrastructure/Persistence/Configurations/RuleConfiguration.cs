@@ -20,8 +20,8 @@ public sealed class RuleConfiguration : IEntityTypeConfiguration<Rule>
         builder.Property(r => r.Slug).HasMaxLength(Slug.MaxLength).IsRequired();
         builder.HasIndex(r => r.Slug).IsUnique();
         builder.Property(r => r.Name).HasMaxLength(200).IsRequired();
-        builder.Property(r => r.Labels).HasColumnType("jsonb").HasConversion(new JsonDictionaryConverter<string>(), new DictionaryComparer<string>());
-        builder.Property(r => r.Selector).HasColumnType("jsonb").HasConversion(new JsonDictionaryConverter<string>(), new DictionaryComparer<string>());
+        builder.Property(r => r.Tags).HasColumnType("jsonb").HasConversion(new JsonDictionaryConverter<string?>(), new DictionaryComparer<string?>());
+        builder.Property(r => r.Selector).HasColumnType("jsonb").HasConversion(new TagSelectorConverter(), new TagSelectorComparer());
         builder.Property(r => r.Condition).HasConversion<string>().HasMaxLength(10);
         builder.Property(r => r.Dimension).HasMaxLength(Slug.MaxLength);
         builder.Property(r => r.Severity).HasConversion<string>().HasMaxLength(10);

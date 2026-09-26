@@ -57,7 +57,7 @@ workers:
 ## Build order
 
 1. Rename agent to worker (done).
-2. Tags replace labels, with `vigia:*` reconciliation.
+2. Tags replace labels, with `vigia:*` reconciliation (done: `vigia:plugin`; worker tags come with step 3).
 3. Worker entity, enrollment tokens, worker credentials; built-in worker registered as a worker with `vigia:builtin`.
 4. Placement (`workers.match`) and per-worker assignments; `unschedulable` / `workers-offline` states.
 5. Quorum in rule evaluation.

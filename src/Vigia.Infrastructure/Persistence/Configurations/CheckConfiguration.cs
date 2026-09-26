@@ -22,9 +22,9 @@ public sealed class CheckConfiguration : IEntityTypeConfiguration<Check>
         builder.Property(c => c.Plugin).HasMaxLength(200).IsRequired();
         builder.Property(c => c.PluginVersion).HasMaxLength(50).IsRequired();
         builder.Property(c => c.ConfigJson).HasColumnType("jsonb").IsRequired();
-        builder.Property(c => c.Labels)
+        builder.Property(c => c.Tags)
             .HasColumnType("jsonb")
-            .HasConversion(new JsonDictionaryConverter<string>(), new DictionaryComparer<string>());
+            .HasConversion(new JsonDictionaryConverter<string?>(), new DictionaryComparer<string?>());
         builder.Property(c => c.WebhookTokenHash).HasMaxLength(64);
         builder.Property(c => c.ManagedBy).HasConversion<string>().HasMaxLength(20);
     }

@@ -9,12 +9,12 @@ namespace Vigia.Api.Requests;
 /// <param name="Plugin">Optional; must match the current plugin.</param>
 /// <param name="Config">Plugin config. Secret fields may be omitted to keep their value.</param>
 /// <param name="Interval">Duration string. Defaults to the plugin default.</param>
-/// <param name="Labels">Labels. Omitted means none.</param>
+/// <param name="Tags">User tags; omitted means none. System tags are kept.</param>
 /// <param name="Enabled">Whether the check is scheduled. Defaults to true.</param>
 public sealed record UpdateCheckRequest(
     string? Name,
     string? Plugin,
     JsonElement Config,
     string? Interval,
-    IReadOnlyDictionary<string, string>? Labels,
+    IReadOnlyDictionary<string, string?>? Tags,
     bool? Enabled);

@@ -22,7 +22,8 @@ Self-hosted monitoring, on-call and AI-assisted incident investigation. Working 
 - **Checks API.** Create, read, update, delete, validate config without saving, probe on demand.
 - **Built-in worker.** Probes every enabled check on its interval with bounded concurrency, jitter and no overlapping probes. Emits metrics on meter `Vigia.Worker`.
 - **Results.** Every probe is stored with exact timestamps. Hourly rollups keep per-dimension min / avg / max / p95. Raw results are kept 14 days, rollups 400 days.
-- **Rules and alerts.** A rule targets one check or a label selector (`plugin` matches the plugin id) and fires on `outcome: down` or a dimension `above` / `below` a threshold, after `for` consecutive results; it resolves after `recoverAfter`. Rules are additive. One firing alert per rule and check: new results update it (message, occurrences) instead of opening another. Error results neither fire nor recover. Results and alert changes are saved in one transaction, serialized per check.
+- **Tags.** `key` or `key:value` on checks and rules, with reserved system tags such as `vigia:plugin`.
+- **Rules and alerts.** A rule targets one check or a tag selector (AND across keys, OR within a key's values, `null` for key present; `vigia:plugin` matches the plugin id) and fires on `outcome: down` or a dimension `above` / `below` a threshold, after `for` consecutive results; it resolves after `recoverAfter`. Rules are additive. One firing alert per rule and check: new results update it (message, occurrences) instead of opening another. Error results neither fire nor recover. Results and alert changes are saved in one transaction, serialized per check.
 - **Auth.** Email and password with bearer and refresh tokens. Only the first user can sign up unless `Auth:OpenSignUp` is on.
 
 ## Quick start

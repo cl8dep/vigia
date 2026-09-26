@@ -5,7 +5,7 @@ namespace Vigia.Plugins;
 /// </summary>
 /// <remarks>
 /// Declared in the plugin's <c>plugin.json</c> (<c>check.class</c>), which the host reads to find and instantiate it.
-/// Identity, labels, dimensions and webhooks live in the manifest, not in code.
+/// Identity, display names, dimensions and webhooks live in the manifest, not in code.
 /// Implement <see cref="Check{TConfig}"/> instead of this interface directly; it gives a typed config.
 /// </remarks>
 public interface ICheck

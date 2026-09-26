@@ -48,7 +48,14 @@ public sealed class UpdateCheckHandler(IAppDbContext db, IPluginRegistry registr
             throw new ValidationException(string.Empty, ex.Message);
         }
 
-        check.SetLabels(command.Labels ?? new Dictionary<string, string>());
+        try
+        {
+            check.SetTags(command.Tags ?? new Dictionary<string, string?>());
+        }
+        catch (DomainException ex)
+        {
+            throw new ValidationException("tags", ex.Message);
+        }
         if (command.Enabled ?? true)
         {
             check.Enable();

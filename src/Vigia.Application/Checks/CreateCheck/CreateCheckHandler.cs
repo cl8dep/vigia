@@ -46,9 +46,13 @@ public sealed class CreateCheckHandler(IAppDbContext db, IPluginRegistry registr
             throw new ValidationException(string.Empty, ex.Message);
         }
 
-        if (command.Labels is not null)
+        try
         {
-            check.SetLabels(command.Labels);
+            check.SetTags(command.Tags ?? new Dictionary<string, string?>());
+        }
+        catch (DomainException ex)
+        {
+            throw new ValidationException("tags", ex.Message);
         }
 
         string? webhookToken = null;

@@ -45,7 +45,7 @@ Workers must keep monitoring and alerting when the control plane is unreachable.
 1. **Cached assignments.** Each worker persists its assigned checks and a minimal notification config locally.
 2. **Keep probing.** Checks continue on schedule without the control plane.
 3. **Buffer results.** Results are stored locally and uploaded when the connection returns, so incident history has no gaps.
-4. **Control plane loss is an alert.** After losing the control plane for N minutes, each worker notifies once through its fallback channel (ntfy, Telegram, external SMTP), including its name and labels. Several workers reporting it at once tells you the monitor is down and from where it is visible. One more notice when the connection returns.
+4. **Control plane loss is an alert.** After losing the control plane for N minutes, each worker notifies once through its fallback channel (ntfy, Telegram, external SMTP), including its name and tags. Several workers reporting it at once tells you the monitor is down and from where it is visible. One more notice when the connection returns.
 5. **Checks alert directly.** While disconnected, each worker evaluates its own checks with the cached rules and notifies directly on failure. There is no coordination between workers: if 6 of 6 workers see a check fail, 6 notifications go out. Each one names the worker, which is itself useful information (global vs regional failure).
 6. **Bounded per worker.** A worker notifies on state transitions only (down once, recovered once) per check, never on every failed probe, and respects the rule's failure / success thresholds.
 7. **Reconciliation.** On reconnect, the worker uploads buffered results and the list of fallback notifications it sent. The control plane evaluates quorum over the buffered data, creates or updates the alerts, and links the fallback notifications to them, so nobody is paged a second time for the same failure.
@@ -83,7 +83,7 @@ Control, worker -> control plane:
 
 | Message | Payload |
 |---|---|
-| `Hello` | worker id, version, SDK version, labels, installed plugins, last assignment revision |
+| `Hello` | worker id, version, SDK version, tags, installed plugins, last assignment revision |
 | `Heartbeat` | timestamp, running checks count, buffer size |
 
 Control, control plane -> worker:
@@ -118,7 +118,7 @@ Assignments are always sent as a full snapshot with a revision, never as deltas,
 check state change / inbound webhook
   -> normalize to alert
   -> dedup + group by fingerprint
-  -> match service + escalation policy (by labels)
+  -> match service + escalation policy (by tags)
   -> notify on-call (outbox, retries, fallback channel)
   -> [v1] trigger investigation, attach summary to alert
 ```

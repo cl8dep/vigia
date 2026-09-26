@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Vigia.Application.Common.Exceptions;
 using Vigia.Application.Common.Interfaces;
+using Vigia.Application.Common.Json;
 using Vigia.Application.Plugins;
 using Vigia.Domain.Common;
 using Vigia.Domain.Rules;
+using Vigia.Domain.Tags;
 
 namespace Vigia.Application.Rules;
 
@@ -31,8 +33,9 @@ public static class RuleSpecApplier
         }
         else
         {
-            rule.TargetSelector(spec.Selector!);
-            plugin = spec.Selector!.GetValueOrDefault("plugin");
+            var selector = TagSelectorJson.Parse(spec.Selector!, "selector");
+            rule.TargetSelector(selector);
+            plugin = selector.SingleValue(SystemTags.Plugin);
         }
 
         var (condition, dimension, threshold) = ParseWhen(spec.When);
@@ -93,7 +96,7 @@ public static class RuleSpecApplier
 
     private static void EnsureDimensionDeclared(string? dimension, string? plugin, IPluginRegistry registry)
     {
-        // Selector rules without a plugin label can span plugins; their dimension is checked per result instead.
+        // Selector rules without a single vigia:plugin can span plugins; their dimension is checked per result instead.
         if (dimension is null || plugin is null || !registry.TryGetCheck(plugin, out var checkPlugin))
         {
             return;

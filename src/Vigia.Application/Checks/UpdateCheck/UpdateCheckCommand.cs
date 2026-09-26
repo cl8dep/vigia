@@ -12,7 +12,7 @@ namespace Vigia.Application.Checks.UpdateCheck;
 /// <param name="Plugin">Optional; if given it must match the current plugin, which cannot change.</param>
 /// <param name="Config">Plugin config.</param>
 /// <param name="Interval">Duration string. Defaults to the plugin default.</param>
-/// <param name="Labels">Labels. Omitted means none.</param>
+/// <param name="Tags">User tags; omitted means none. System tags are kept.</param>
 /// <param name="Enabled">Whether the check is scheduled. Defaults to true.</param>
 public sealed record UpdateCheckCommand(
     string Slug,
@@ -20,5 +20,5 @@ public sealed record UpdateCheckCommand(
     string? Plugin,
     JsonElement Config,
     string? Interval,
-    IReadOnlyDictionary<string, string>? Labels,
+    IReadOnlyDictionary<string, string?>? Tags,
     bool? Enabled) : ICommand<CheckDto>;

@@ -27,7 +27,7 @@ public sealed class RuleEvaluator(IAppDbContext db, IPluginRegistry registry)
         }
 
         var rules = (await db.Rules.Where(r => r.Enabled).ToListAsync(ct))
-            .Where(r => r.Targets(check.Id, check.Plugin, check.Labels))
+            .Where(r => r.Targets(check.Id, check.Tags))
             .ToList();
         if (rules.Count == 0)
         {

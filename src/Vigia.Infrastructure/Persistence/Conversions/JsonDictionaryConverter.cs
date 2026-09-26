@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Vigia.Infrastructure.Persistence.Conversions;
 
 /// <summary>
-/// Stores a string-keyed dictionary as a JSON object (labels, measurements).
+/// Stores a string-keyed dictionary as a JSON object (tags, measurements).
 /// </summary>
 /// <typeparam name="TValue">Value type.</typeparam>
 public sealed class JsonDictionaryConverter<TValue> : ValueConverter<Dictionary<string, TValue>, string>

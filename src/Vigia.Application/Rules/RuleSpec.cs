@@ -11,8 +11,11 @@ public record RuleSpec
     /// <summary>Slug of the one check to target. Mutually exclusive with <see cref="Selector"/>.</summary>
     public string? Check { get; init; }
 
-    /// <summary>Labels a check must all have to be targeted; <c>plugin</c> matches the plugin id.</summary>
-    public IReadOnlyDictionary<string, string>? Selector { get; init; }
+    /// <summary>
+    /// Tags a check must have to be targeted: each key maps to a value, an array of values (any of them), or null
+    /// (key present). System tags such as <c>vigia:plugin</c> can be used. See <see cref="Common.Json.TagSelectorJson"/>.
+    /// </summary>
+    public IReadOnlyDictionary<string, System.Text.Json.JsonElement>? Selector { get; init; }
 
     /// <summary>Condition.</summary>
     public RuleWhen? When { get; init; }

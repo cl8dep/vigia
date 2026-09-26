@@ -16,7 +16,7 @@ namespace Vigia.Application.Checks;
 /// <param name="Config">Config without secret fields.</param>
 /// <param name="Interval">Interval as a duration string.</param>
 /// <param name="Enabled">Whether the check is scheduled.</param>
-/// <param name="Labels">Labels.</param>
+/// <param name="Tags">Tags, including read-only system tags (<c>vigia:*</c>). Null value means a flag.</param>
 /// <param name="ManagedBy">Owning front end.</param>
 /// <param name="CreatedAt">Creation time (UTC).</param>
 /// <param name="UpdatedAt">Last update time (UTC).</param>
@@ -30,7 +30,7 @@ public sealed record CheckDto(
     JsonElement Config,
     string Interval,
     bool Enabled,
-    IReadOnlyDictionary<string, string> Labels,
+    IReadOnlyDictionary<string, string?> Tags,
     string ManagedBy,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
@@ -51,7 +51,7 @@ public sealed record CheckDto(
             RedactSecrets(check.ConfigJson, plugin),
             Duration.Format(check.Interval),
             check.Enabled,
-            check.Labels,
+            check.Tags,
             JsonNamingPolicy.CamelCase.ConvertName(check.ManagedBy.ToString()),
             check.CreatedAt,
             check.UpdatedAt,

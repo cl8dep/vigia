@@ -8,7 +8,7 @@ Phases are a draft. Every item below is a plugin or uses the plugin model unless
 - Check plugins: HTTP, TCP, DNS, TLS certificate, ping, heartbeat (inbound).
 - DNS done properly: query multiple resolvers (authoritative, public, internal) and compare, expected-record drift detection, domain expiry.
 - Distributed workers with autonomous degraded mode (see [architecture.md](architecture.md)).
-- Worker selection by labels (`region=eu`, `network=flystern-vpc`).
+- Worker selection by tag selector (`region: [eu, us]`, `network: flystern-vpc`).
 - Quorum: a check is down only when N of M workers agree.
 
 ### Alerts
@@ -29,7 +29,7 @@ Phases are a draft. Every item below is a plugin or uses the plugin model unless
 - Single binary, SQLite or Postgres.
 - YAML config with `plan` / `apply`.
 - REST API.
-- Labels on every entity (services, checks, workers, alerts).
+- Tags on every entity (services, checks, workers, alerts), with reserved `vigia:*` system tags.
 
 ## v1: AI layer
 

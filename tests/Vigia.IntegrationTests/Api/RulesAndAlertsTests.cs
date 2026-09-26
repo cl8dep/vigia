@@ -90,11 +90,11 @@ public sealed class RulesAndAlertsTests(VigiaApiFactory factory)
     {
         var client = await factory.CreateAuthenticatedClientAsync(Ct);
         var service = $"svc-{Guid.NewGuid():N}"[..12];
-        var matching = await CreateCheckAsync(client, new Dictionary<string, string> { ["service"] = service });
+        var matching = await CreateCheckAsync(client, new Dictionary<string, string?> { ["service"] = service });
         var other = await CreateCheckAsync(client);
         await CreateRuleAsync(client, new
         {
-            selector = new Dictionary<string, string> { ["service"] = service, ["plugin"] = "vigia.check.http" },
+            selector = new Dictionary<string, string> { ["service"] = service, ["vigia:plugin"] = "vigia.check.http" },
             when = new { dimension = "latency", above = 800 },
             @for = 2,
         });
@@ -194,7 +194,7 @@ public sealed class RulesAndAlertsTests(VigiaApiFactory factory)
         Assert.Empty(await AlertsAsync(client, check));
     }
 
-    private static async Task<string> CreateCheckAsync(HttpClient client, IReadOnlyDictionary<string, string>? labels = null)
+    private static async Task<string> CreateCheckAsync(HttpClient client, IReadOnlyDictionary<string, string?>? tags = null)
     {
         var slug = $"rules-{Guid.NewGuid():N}"[..20];
         var response = await client.PostAsJsonAsync("/api/v1/checks", new
@@ -202,7 +202,7 @@ public sealed class RulesAndAlertsTests(VigiaApiFactory factory)
             slug,
             plugin = "vigia.check.http",
             config = new { url = "http://127.0.0.1:1/" },
-            labels,
+            tags,
         }, Ct);
         response.EnsureSuccessStatusCode();
         return slug;

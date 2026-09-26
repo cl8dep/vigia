@@ -1,4 +1,6 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using Vigia.Application.Common.Json;
 using Vigia.Domain.Rules;
 
 namespace Vigia.Application.Rules;
@@ -9,7 +11,7 @@ namespace Vigia.Application.Rules;
 /// <param name="Slug">Stable identity.</param>
 /// <param name="Name">Display name.</param>
 /// <param name="Check">Targeted check slug, or null for selector rules.</param>
-/// <param name="Selector">Label selector, or null for single-check rules.</param>
+/// <param name="Selector">Tag selector, or null for single-check rules.</param>
 /// <param name="When">Condition.</param>
 /// <param name="For">Consecutive matching results to fire.</param>
 /// <param name="RecoverAfter">Consecutive non-matching results to resolve.</param>
@@ -20,7 +22,7 @@ public sealed record RuleDto(
     string Slug,
     string Name,
     string? Check,
-    IReadOnlyDictionary<string, string>? Selector,
+    IReadOnlyDictionary<string, JsonNode?>? Selector,
     RuleWhen When,
     int For,
     int RecoverAfter,
@@ -42,7 +44,7 @@ public sealed record RuleDto(
             rule.Slug,
             rule.Name,
             checkSlug,
-            rule.CheckId is null ? rule.Selector : null,
+            rule.CheckId is null ? TagSelectorJson.Write(rule.Selector) : null,
             when,
             rule.For,
             rule.RecoverAfter,

@@ -67,12 +67,12 @@ integrations:
       token: ${env:NTFY_TOKEN}
   alertmanager:
     plugin: vigia.source.alertmanager@1
-    labels: { env: prod }
+    tags: { env: prod }
 
 workers:
   # Workers enroll themselves; config only sets policy per label group.
   prod:
-    selector: { env: prod }
+    match: { env: prod }
     fallback:
       channels: [ntfy-fallback]
       notify-after: 2m
@@ -80,7 +80,7 @@ workers:
 services:
   booking-api:
     team: platform
-    labels: { env: prod, tier: critical }
+    tags: { env: prod, tier: critical }
     checks: { selector: { service: booking-api } }
     depends-on:
       - { service: sabre, mode: blocking }
@@ -90,7 +90,7 @@ services:
   sabre:
     kind: external
     team: platform
-    labels: { vendor: sabre }
+    tags: { vendor: sabre }
     checks: { selector: { service: sabre } }
     escalation-policy: vendor-notify
 
@@ -104,8 +104,8 @@ checks:
   booking-api-health:
     plugin: vigia.check.http@1
     interval: 30s
-    labels: { service: booking-api }
-    workers: { selector: { env: prod }, quorum: 2 }
+    tags: { service: booking-api }
+    workers: { match: { env: prod }, quorum: 2 }
     config:
       url: https://api.flystern.example/health
       expected-status: [200]
@@ -114,16 +114,16 @@ checks:
   booking-api-internal:
     plugin: vigia.check.http@1
     interval: 30s
-    labels: { service: booking-api, view: inside }
-    workers: { selector: { network: flystern-vpc } }
+    tags: { service: booking-api, view: inside }
+    workers: { match: { network: flystern-vpc } }
     config:
       url: http://booking-api.internal:8080/health
 
   sabre-availability:
     plugin: vigia.check.http@1
     interval: 1m
-    labels: { service: sabre }
-    workers: { selector: { network: flystern-vpc } }
+    tags: { service: sabre }
+    workers: { match: { network: flystern-vpc } }
     config:
       url: https://api.sabre.example/v1/ping
       headers:
@@ -132,8 +132,8 @@ checks:
   flystern-dns:
     plugin: vigia.check.dns@1
     interval: 1m
-    labels: { service: dns-flystern }
-    workers: { selector: { role: public-probe }, quorum: 50% }
+    tags: { service: dns-flystern }
+    workers: { match: { role: public-probe }, quorum: 50% }
     config:
       host: api.flystern.example
       record-type: A
@@ -143,28 +143,28 @@ checks:
   flystern-tls:
     plugin: vigia.check.tls@1
     interval: 1h
-    labels: { service: booking-api }
-    workers: { selector: { role: public-probe }, quorum: 1 }
+    tags: { service: booking-api }
+    workers: { match: { role: public-probe }, quorum: 1 }
     config:
       host: api.flystern.example
 
 rules:
   # Selector rules apply to every matching check.
   http-down:
-    selector: { plugin: vigia.check.http }
+    selector: { "vigia:plugin": vigia.check.http }
     when: { dimension: status, is: down }
     for: 3
     recover-after: 2
     severity: critical
 
   slow-api:
-    selector: { service: booking-api, plugin: vigia.check.http }
+    selector: { service: booking-api, "vigia:plugin": vigia.check.http }
     when: { dimension: latency, above: 800ms }
     for: 5
     severity: warning
 
   tls-expiry:
-    selector: { plugin: vigia.check.tls }
+    selector: { "vigia:plugin": vigia.check.tls }
     when: { dimension: days-to-expiry, below: 14 }
     severity: warning
 
@@ -187,7 +187,7 @@ resource "vigia_check" "booking_api_health" {
   slug     = "booking-api-health"
   plugin   = "vigia.check.http@1"
   interval = "30s"
-  labels   = { service = "booking-api" }
+  tags     = { service = "booking-api" }
 
   workers = {
     selector = { env = "prod" }

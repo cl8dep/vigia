@@ -1,4 +1,5 @@
 using Vigia.Domain.Common;
+using Vigia.Domain.Tags;
 
 namespace Vigia.Domain.Rules;
 
@@ -27,8 +28,8 @@ public sealed class Rule : Entity
     /// <summary>Check this rule targets, or null when it uses <see cref="Selector"/>.</summary>
     public Guid? CheckId { get; private set; }
 
-    /// <summary>Labels a check must all have to be targeted. The key <c>plugin</c> matches the check's plugin id.</summary>
-    public Dictionary<string, string> Selector { get; private set; } = [];
+    /// <summary>Tags a targeted check must have, or <see cref="TagSelector.Any"/> for single-check rules.</summary>
+    public TagSelector Selector { get; private set; } = TagSelector.Any;
 
     /// <summary>What the rule looks for.</summary>
     public ConditionKind Condition { get; private set; }
@@ -55,20 +56,20 @@ public sealed class Rule : Entity
     public void TargetCheck(Guid checkId)
     {
         CheckId = checkId;
-        Selector = [];
+        Selector = TagSelector.Any;
     }
 
     /// <summary>Points the rule at every check matching <paramref name="selector"/>.</summary>
     /// <exception cref="DomainException">The selector is empty.</exception>
-    public void TargetSelector(IReadOnlyDictionary<string, string> selector)
+    public void TargetSelector(TagSelector selector)
     {
-        if (selector.Count == 0)
+        if (selector.IsEmpty)
         {
-            throw new DomainException("A selector needs at least one label.");
+            throw new DomainException("A selector needs at least one tag.");
         }
 
         CheckId = null;
-        Selector = new Dictionary<string, string>(selector);
+        Selector = selector;
     }
 
     /// <summary>Sets the condition and thresholds.</summary>
@@ -98,15 +99,15 @@ public sealed class Rule : Entity
         Severity = severity;
     }
 
-    /// <summary>Whether this rule applies to a check with the given plugin and labels.</summary>
-    public bool Targets(Guid checkId, string plugin, IReadOnlyDictionary<string, string> labels)
+    /// <summary>Whether this rule applies to a check with the given id and tags.</summary>
+    public bool Targets(Guid checkId, IReadOnlyDictionary<string, string?> tags)
     {
         if (CheckId is not null)
         {
             return CheckId == checkId;
         }
 
-        return Selector.Count > 0 && Selector.All(s => s.Key == "plugin" ? s.Value == plugin : labels.TryGetValue(s.Key, out var v) && v == s.Value);
+        return !Selector.IsEmpty && Selector.Matches(tags);
     }
 
     /// <summary>Starts evaluating the rule.</summary>
