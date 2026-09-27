@@ -1,0 +1,95 @@
+<!doctype html>
+<!--
+  Status page adapted from Piro (https://github.com/heva-co/piro), Copyright (c) 2025 heva Inc., AGPL-3.0.
+  See NOTICE.md and LICENSE in this folder.
+-->
+<html lang="en" class="h-full antialiased">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Status</title>
+  <meta name="description" content="System status and uptime" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @custom-variant dark (&:is(.dark *));
+
+    @theme inline {
+      --color-background: var(--background);
+      --color-foreground: var(--foreground);
+      --font-sans: 'Geist', sans-serif;
+      --color-border: var(--border);
+      --color-muted-foreground: var(--muted-foreground);
+      --color-muted: var(--muted);
+      --color-popover-foreground: var(--popover-foreground);
+      --color-popover: var(--popover);
+      --radius-2xl: calc(var(--radius) * 1.8);
+      --radius-3xl: calc(var(--radius) * 2.2);
+    }
+
+    :root {
+      --background: oklch(1 0 0);
+      --foreground: oklch(0.145 0 0);
+      --popover: oklch(1 0 0);
+      --popover-foreground: oklch(0.145 0 0);
+      --muted: oklch(0.97 0 0);
+      --muted-foreground: oklch(0.556 0 0);
+      --border: oklch(0.922 0 0);
+      --radius: 0.625rem;
+    }
+
+    .dark {
+      --background: oklch(0.145 0 0);
+      --foreground: oklch(0.985 0 0);
+      --popover: oklch(0.205 0 0);
+      --popover-foreground: oklch(0.985 0 0);
+      --muted: oklch(0.269 0 0);
+      --muted-foreground: oklch(0.708 0 0);
+      --border: oklch(1 0 0 / 10%);
+    }
+
+    @layer base {
+      * { @apply border-border; }
+      body { @apply bg-background text-foreground; }
+      html { @apply font-sans; }
+    }
+  </style>
+</head>
+<body class="min-h-full flex flex-col">
+  <!-- Nav (Piro src/components/Nav.tsx) -->
+  <header class="border-b border-border/40 bg-background/80 backdrop-blur sticky top-0 z-40">
+    <div class="mx-auto w-full max-w-screen-lg px-8 h-14 flex items-center justify-between">
+      <a href="." class="flex items-center gap-2 font-semibold text-base tracking-tight text-foreground" id="site-name">Vigia</a>
+      <nav class="flex items-center gap-3 text-sm">
+        <button id="theme-toggle" type="button" aria-label="Toggle theme"
+          class="size-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"></button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Page (Piro src/app/page.tsx) -->
+  <main class="mx-auto w-full max-w-5xl px-8 py-10 flex flex-col gap-6">
+    <div class="flex flex-col gap-1">
+      <h1 class="text-2xl sm:text-3xl font-bold" id="title">Service Status</h1>
+      <p class="text-sm text-muted-foreground" id="description"></p>
+    </div>
+    <div id="header"></div>
+    <div id="groups" class="flex flex-col gap-6"></div>
+    <p class="text-xs text-muted-foreground" id="updated"></p>
+  </main>
+
+  <!-- Footer (Piro src/components/Footer.tsx) -->
+  <footer class="mt-auto border-t border-border/40 py-6 text-xs text-muted-foreground">
+    <div class="mx-auto w-full max-w-screen-lg px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <span>Powered by Vigia</span>
+      <span>Status page adapted from <a class="underline hover:text-foreground" href="https://github.com/heva-co/piro" target="_blank" rel="noopener noreferrer">Piro</a> (AGPL-3.0)</span>
+    </div>
+  </footer>
+
+  <div id="tooltip" role="tooltip"
+    class="pointer-events-none fixed z-50 hidden whitespace-nowrap rounded-md border bg-popover text-popover-foreground px-3 py-1.5 text-xs shadow-md"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

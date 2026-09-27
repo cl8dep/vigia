@@ -1,0 +1,58 @@
+# Vigia demo: control plane, Postgres, a public status page, and two targets you can stop to see outages.
+#   docker compose -f demo/docker-compose.yml up -d --build
+#   ./demo/seed.sh
+#   open http://localhost:8080
+name: vigia-demo
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: vigia
+      POSTGRES_USER: vigia
+      POSTGRES_PASSWORD: vigia
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vigia"]
+      interval: 2s
+      retries: 30
+    volumes:
+      - postgres:/var/lib/postgresql
+
+  api:
+    build:
+      context: ..
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Vigia: Host=postgres;Database=vigia;Username=vigia;Password=vigia
+      Worker__Region: local
+      Alerting__HealthReconcileInterval: "00:00:30"
+
+  # Stand-ins for things Vigia monitors. Stop one to watch it go down:
+  #   docker compose -f demo/docker-compose.yml stop sabre
+  booking-eu:
+    image: nginx:alpine
+    volumes:
+      - ./targets/health.conf:/etc/nginx/conf.d/default.conf:ro
+  booking-us:
+    image: nginx:alpine
+    volumes:
+      - ./targets/health.conf:/etc/nginx/conf.d/default.conf:ro
+  sabre:
+    image: nginx:alpine
+    volumes:
+      - ./targets/health.conf:/etc/nginx/conf.d/default.conf:ro
+
+  web:
+    image: nginx:alpine
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+    volumes:
+      - ./status-page:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  postgres:

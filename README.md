@@ -32,6 +32,10 @@ Self-hosted monitoring, on-call and AI-assisted incident investigation. Working 
 - **Rules and alerts.** A rule targets one check or a tag selector (AND across keys, OR within a key's values, `null` for key present; `vigia:plugin` matches the plugin id) and fires on `outcome: down` or a dimension `above` / `below` a threshold, after `for` consecutive results; it resolves after `recoverAfter`. Rules are additive. One firing alert per rule and check: new results update it (message, occurrences) instead of opening another. Error results neither fire nor recover. Results and alert changes are saved in one transaction, serialized per check.
 - **Auth.** Email and password with bearer and refresh tokens. Only the first user can sign up unless `Auth:OpenSignUp` is on.
 
+## Demo
+
+`docker compose -f demo/docker-compose.yml up -d --build && ./demo/seed.sh`, then open http://localhost:8080 for a public status page with services, dependencies, a partitioned service and stand-in targets to break. See [demo/README.md](demo/README.md).
+
 ## Quick start
 
 Requirements: .NET SDK 10, Docker.
