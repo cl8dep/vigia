@@ -8,6 +8,7 @@ using Vigia.Domain.Health;
 using Vigia.Domain.Results;
 using Vigia.Domain.Rules;
 using Vigia.Domain.Services;
+using Vigia.Domain.StatusPages;
 using Vigia.Domain.Webhooks;
 using Vigia.Domain.Workers;
 using Vigia.Infrastructure.Identity;
@@ -68,6 +69,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<ServiceHealthChange> ServiceHealthChanges
     {
         get { return Set<ServiceHealthChange>(); }
+    }
+
+    public DbSet<StatusPage> StatusPages
+    {
+        get { return Set<StatusPage>(); }
     }
 
     public DbSet<WebhookReceipt> WebhookReceipts

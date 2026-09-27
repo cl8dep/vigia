@@ -9,4 +9,5 @@ public enum TaggedEntity
     Worker,
     Rule,
     Service,
+    StatusPage,
 }

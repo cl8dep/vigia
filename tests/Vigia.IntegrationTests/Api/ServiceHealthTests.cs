@@ -177,7 +177,7 @@ public sealed class ServiceHealthTests(VigiaApiFactory factory)
     private static async Task<string> CreateCheckAsync(HttpClient client, Dictionary<string, string?> tags)
     {
         var slug = Unique("hc");
-        (await client.PostAsJsonAsync("/api/v1/checks", new { slug, plugin = "vigia.check.http", config = new { url = "http://127.0.0.1:1/" }, tags }, Ct)).EnsureSuccessStatusCode();
+        (await client.PostAsJsonAsync("/api/v1/checks", new { slug, plugin = "vigia.check.http", config = new { url = "http://127.0.0.1:1/" }, tags, workers = Placement.BuiltInOnly }, Ct)).EnsureSuccessStatusCode();
         return slug;
     }
 

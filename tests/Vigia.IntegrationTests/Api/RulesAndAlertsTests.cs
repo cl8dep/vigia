@@ -203,6 +203,7 @@ public sealed class RulesAndAlertsTests(VigiaApiFactory factory)
             plugin = "vigia.check.http",
             config = new { url = "http://127.0.0.1:1/" },
             tags,
+            workers = Placement.BuiltInOnly,
         }, Ct);
         response.EnsureSuccessStatusCode();
         return slug;

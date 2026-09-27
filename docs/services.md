@@ -136,6 +136,6 @@ Two shapes, both supported:
 1. System tag catalog (`reconciled` / `assignable` / `computed`, `flag` / `value` / `vocabulary`) with `vigia:external`; rule-level `quorum` (done).
 2. Service entity, CRUD, check selector, `partitionBy`, dependencies with cycle check (done).
 3. Health: the function, stored state, transition history, recompute on alert changes, reconciliation job (done).
-4. Status page entity and the public read-only endpoint.
+4. Status page entity and the public read-only endpoint (done). Daily availability comes from the health transition history: down counts fully, partial outage half, unknown time is excluded. The public view never includes reasons, check or service slugs.
 5. Demo: docker compose, seed data, `index.html` rendering the public status page.
 6. Later: maintenance windows, manual overrides, teams and escalation policies on services, consequence-alert inhibition for `blocking` dependencies, static export.

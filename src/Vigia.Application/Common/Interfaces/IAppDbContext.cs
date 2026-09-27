@@ -5,6 +5,7 @@ using Vigia.Domain.Health;
 using Vigia.Domain.Results;
 using Vigia.Domain.Rules;
 using Vigia.Domain.Services;
+using Vigia.Domain.StatusPages;
 using Vigia.Domain.Workers;
 
 namespace Vigia.Application.Common.Interfaces;
@@ -33,6 +34,8 @@ public interface IAppDbContext
     DbSet<ServiceHealth> ServiceHealth { get; }
 
     DbSet<ServiceHealthChange> ServiceHealthChanges { get; }
+
+    DbSet<StatusPage> StatusPages { get; }
 
     /// <summary>Persists pending changes.</summary>
     Task<int> SaveChangesAsync(CancellationToken ct = default);

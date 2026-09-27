@@ -26,6 +26,7 @@ Self-hosted monitoring, on-call and AI-assisted incident investigation. Working 
 - **Quorum.** With several workers each keeps its own streak; a rule fires when its quorum (the rule's, else the check's) (count, percentage or `majority`, the default) of online eligible workers fail it, and says where: "(failing from eu-west, us-east: 2 of 3)".
 - **Placement.** Checks pick workers with `workers.match` (a tag selector over worker tags) and set a `quorum`. Each check reports its placement: `ok`, `unschedulable` (no worker matches) or `workers-offline`. Heartbeat checks stay on the control plane.
 - **Services.** Group checks by tag selector (one check can feed several services), optionally partitioned (`partitionBy: region`), with `blocking` / `soft` / `advisory` dependencies; cycles are rejected with the offending path. Each service lists its matched checks and the ones no rule covers.
+- **Status pages.** Curated public views: components point to services under public names and groups. `GET /status/{slug}` is anonymous and shows only states and 90 days of daily availability from the health history, never internal reasons or slugs.
 - **Service health.** Derived from firing alerts (critical: down, warning: degraded), per partition (`partial-outage` when some partitions are down) and through dependencies. Stored with a transition history, recomputed in the same transaction as the alert change and reconciled every minute.
 - **Tags.** `key` or `key:value`, one value per key, on checks, workers and rules. The reserved `vigia:*` namespace has a catalog, as in Piro: reconciled tags the system derives (`vigia:plugin`, `vigia:region`, `vigia:builtin`) and assignable flags users toggle inside `tags` (`vigia:external` for third-party providers).
 - **Rules and alerts.** A rule targets one check or a tag selector (AND across keys, OR within a key's values, `null` for key present; `vigia:plugin` matches the plugin id) and fires on `outcome: down` or a dimension `above` / `below` a threshold, after `for` consecutive results; it resolves after `recoverAfter`. Rules are additive. One firing alert per rule and check: new results update it (message, occurrences) instead of opening another. Error results neither fire nor recover. Results and alert changes are saved in one transaction, serialized per check.
@@ -84,6 +85,9 @@ curl $URL/api/v1/checks/example/results -H "Authorization: Bearer $TOKEN"
 | `GET`, `POST` | `/api/v1/services` | List or create services |
 | `GET`, `PUT`, `DELETE` | `/api/v1/services/{slug}` | Get (health, matched and uncovered checks), replace, delete |
 | `GET` | `/api/v1/services/{slug}/health-changes` | Health transitions, newest first |
+| `GET`, `POST` | `/api/v1/status-pages` | List or create status pages |
+| `GET`, `PUT`, `DELETE` | `/api/v1/status-pages/{slug}` | Get, replace or delete a status page |
+| `GET` | `/status/{slug}` | Public status page, no auth (`days`, default 90) |
 | `GET`, `POST` | `/api/v1/rules` | List or create rules |
 | `GET`, `PUT`, `DELETE` | `/api/v1/rules/{slug}` | Get, replace or delete a rule |
 | `GET` | `/api/v1/alerts` | Alerts newest first (`state`, `check`, `limit`) |
