@@ -134,7 +134,7 @@ Two shapes, both supported:
 ## Build order
 
 1. System tag catalog (`reconciled` / `assignable` / `computed`, `flag` / `value` / `vocabulary`) with `vigia:external`; rule-level `quorum` (done).
-2. Service entity, CRUD, check selector, `partitionBy`, dependencies with cycle check.
+2. Service entity, CRUD, check selector, `partitionBy`, dependencies with cycle check (done).
 3. Health: the function, stored state, transition history, recompute on alert changes, reconciliation job.
 4. Status page entity and the public read-only endpoint.
 5. Demo: docker compose, seed data, `index.html` rendering the public status page.

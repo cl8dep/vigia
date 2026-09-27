@@ -3,6 +3,7 @@ using Vigia.Domain.Alerts;
 using Vigia.Domain.Checks;
 using Vigia.Domain.Results;
 using Vigia.Domain.Rules;
+using Vigia.Domain.Services;
 using Vigia.Domain.Workers;
 
 namespace Vigia.Application.Common.Interfaces;
@@ -23,6 +24,10 @@ public interface IAppDbContext
     DbSet<Alert> Alerts { get; }
 
     DbSet<Worker> Workers { get; }
+
+    DbSet<Service> Services { get; }
+
+    DbSet<ServiceDependency> ServiceDependencies { get; }
 
     /// <summary>Persists pending changes.</summary>
     Task<int> SaveChangesAsync(CancellationToken ct = default);

@@ -81,23 +81,23 @@ services:
   booking-api:
     team: platform
     tags: { env: prod, tier: critical }
-    checks: { selector: { service: booking-api } }
-    depends-on:
+    checks: { service: booking-api }
+    partitionBy: region
+    dependsOn:
       - { service: sabre, mode: blocking }
       - { service: dns-flystern, mode: blocking }
     escalation-policy: platform-default
 
   sabre:
-    kind: external
     team: platform
-    tags: { vendor: sabre }
-    checks: { selector: { service: sabre } }
+    tags: { vendor: sabre, "vigia:external": null }
+    checks: { service: sabre }
     escalation-policy: vendor-notify
 
   dns-flystern:
-    kind: external
     team: platform
-    checks: { selector: { service: dns-flystern } }
+    tags: { "vigia:external": null }
+    checks: { service: dns-flystern }
     escalation-policy: platform-default
 
 checks:
