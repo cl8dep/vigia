@@ -69,7 +69,7 @@ States, worst first: `down`, `partial-outage`, `degraded`, `maintenance`, `opera
 1. **Per check**, from its firing alerts: any `critical` -> down; any `warning` -> degraded; else operational. `info` alerts do not affect health. This inherits quorum, thresholds and anti-flapping from rules.
 2. **Per service without `partitionBy`**: worst of its checks.
 3. **Per service with `partitionBy: <key>`**: checks are grouped by that tag; each group takes its worst state; then all groups down -> `down`, some groups down -> `partial-outage`, else the worst remaining (`degraded` or `operational`). Checks without the key form their own group. Works for any key: `region`, `az`, `cluster`, `shard`. The response shows the per-partition breakdown ("partial outage: eu-west down").
-4. **Dependencies** propagate, following the mode table.
+4. **Dependencies** propagate, following the mode table. A dependency only makes things worse. A service with no checks of its own but with `blocking` or `soft` dependencies of known state (a business service over technical ones, as in PagerDuty) is `operational` when they are; `advisory` dependencies never inform it.
 5. **Overrides** on top: maintenance window, then a manual override with a message.
 
 Checks without any rule never affect a service; the service response lists them as `uncoveredChecks` so this is visible.
@@ -135,7 +135,7 @@ Two shapes, both supported:
 
 1. System tag catalog (`reconciled` / `assignable` / `computed`, `flag` / `value` / `vocabulary`) with `vigia:external`; rule-level `quorum` (done).
 2. Service entity, CRUD, check selector, `partitionBy`, dependencies with cycle check (done).
-3. Health: the function, stored state, transition history, recompute on alert changes, reconciliation job.
+3. Health: the function, stored state, transition history, recompute on alert changes, reconciliation job (done).
 4. Status page entity and the public read-only endpoint.
 5. Demo: docker compose, seed data, `index.html` rendering the public status page.
 6. Later: maintenance windows, manual overrides, teams and escalation policies on services, consequence-alert inhibition for `blocking` dependencies, static export.

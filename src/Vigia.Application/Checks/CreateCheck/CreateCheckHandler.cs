@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Vigia.Application.Common;
 using Vigia.Application.Common.Exceptions;
 using Vigia.Application.Common.Interfaces;
+using Vigia.Application.Health;
 using Vigia.Application.Common.Security;
 using Vigia.Application.Placement;
 using Vigia.Application.Plugins;
@@ -14,7 +15,7 @@ namespace Vigia.Application.Checks.CreateCheck;
 /// <summary>
 /// Handles <see cref="CreateCheckCommand"/>.
 /// </summary>
-public sealed class CreateCheckHandler(IAppDbContext db, IPluginRegistry registry, TimeProvider time) : ICommandHandler<CreateCheckCommand, CheckDto>
+public sealed class CreateCheckHandler(IAppDbContext db, IPluginRegistry registry, TimeProvider time, IServiceHealthUpdater health) : ICommandHandler<CreateCheckCommand, CheckDto>
 {
     /// <inheritdoc />
     public async ValueTask<CheckDto> Handle(CreateCheckCommand command, CancellationToken ct)
@@ -67,6 +68,9 @@ public sealed class CreateCheckHandler(IAppDbContext db, IPluginRegistry registr
 
         db.Checks.Add(check);
         await db.SaveChangesAsync(ct);
+
+        // Membership, alerts or the graph may have changed.
+        await health.RecomputeAsync(ct);
 
         var workers = await db.Workers.AsNoTracking().ToListAsync(ct);
         return CheckDto.From(check, plugin, CheckPlacement.Evaluate(check, plugin, workers, time.GetUtcNow()), webhookToken);

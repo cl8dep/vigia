@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Vigia.Domain.Alerts;
 using Vigia.Domain.Checks;
+using Vigia.Domain.Health;
 using Vigia.Domain.Results;
 using Vigia.Domain.Rules;
 using Vigia.Domain.Services;
@@ -28,6 +29,10 @@ public interface IAppDbContext
     DbSet<Service> Services { get; }
 
     DbSet<ServiceDependency> ServiceDependencies { get; }
+
+    DbSet<ServiceHealth> ServiceHealth { get; }
+
+    DbSet<ServiceHealthChange> ServiceHealthChanges { get; }
 
     /// <summary>Persists pending changes.</summary>
     Task<int> SaveChangesAsync(CancellationToken ct = default);

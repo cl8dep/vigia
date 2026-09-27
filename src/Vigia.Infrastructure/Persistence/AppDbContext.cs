@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Vigia.Application.Common.Interfaces;
 using Vigia.Domain.Alerts;
 using Vigia.Domain.Checks;
+using Vigia.Domain.Health;
 using Vigia.Domain.Results;
 using Vigia.Domain.Rules;
 using Vigia.Domain.Services;
@@ -57,6 +58,16 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<ServiceDependency> ServiceDependencies
     {
         get { return Set<ServiceDependency>(); }
+    }
+
+    public DbSet<ServiceHealth> ServiceHealth
+    {
+        get { return Set<ServiceHealth>(); }
+    }
+
+    public DbSet<ServiceHealthChange> ServiceHealthChanges
+    {
+        get { return Set<ServiceHealthChange>(); }
     }
 
     public DbSet<WebhookReceipt> WebhookReceipts

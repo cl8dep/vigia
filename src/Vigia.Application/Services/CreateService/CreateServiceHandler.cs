@@ -2,6 +2,7 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Vigia.Application.Common.Exceptions;
 using Vigia.Application.Common.Interfaces;
+using Vigia.Application.Health;
 using Vigia.Domain.Common;
 using Vigia.Domain.Services;
 
@@ -10,7 +11,7 @@ namespace Vigia.Application.Services.CreateService;
 /// <summary>
 /// Handles <see cref="CreateServiceCommand"/>.
 /// </summary>
-public sealed class CreateServiceHandler(IAppDbContext db) : ICommandHandler<CreateServiceCommand, ServiceDto>
+public sealed class CreateServiceHandler(IAppDbContext db, IServiceHealthUpdater health) : ICommandHandler<CreateServiceCommand, ServiceDto>
 {
     /// <inheritdoc />
     public async ValueTask<ServiceDto> Handle(CreateServiceCommand command, CancellationToken ct)
@@ -33,6 +34,9 @@ public sealed class CreateServiceHandler(IAppDbContext db) : ICommandHandler<Cre
         await ServiceSpecApplier.ApplyAsync(service, command.Slug, command.Spec, db, ct);
         db.Services.Add(service);
         await db.SaveChangesAsync(ct);
+
+        // Membership, alerts or the graph may have changed.
+        await health.RecomputeAsync(ct);
         return (await ServiceViews.BuildAsync(db, [service], ct))[0];
     }
 }

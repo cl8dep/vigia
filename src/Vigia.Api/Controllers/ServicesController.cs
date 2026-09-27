@@ -6,6 +6,7 @@ using Vigia.Application.Services;
 using Vigia.Application.Services.CreateService;
 using Vigia.Application.Services.DeleteService;
 using Vigia.Application.Services.GetService;
+using Vigia.Application.Services.ListHealthChanges;
 using Vigia.Application.Services.ListServices;
 using Vigia.Application.Services.UpdateService;
 
@@ -31,6 +32,13 @@ public sealed class ServicesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<ServiceDto>> Get(string slug, CancellationToken ct)
     {
         return Ok(await mediator.Send(new GetServiceQuery(slug), ct));
+    }
+
+    /// <summary>Health transitions of a service, newest first.</summary>
+    [HttpGet("{slug}/health-changes")]
+    public async Task<ActionResult<IReadOnlyList<HealthChangeDto>>> HealthChanges(string slug, CancellationToken ct, [FromQuery] int limit = 50)
+    {
+        return Ok(await mediator.Send(new ListHealthChangesQuery(slug, limit), ct));
     }
 
     /// <summary>Creates a service.</summary>

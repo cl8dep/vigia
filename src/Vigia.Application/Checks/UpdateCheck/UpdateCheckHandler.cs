@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Vigia.Application.Common;
 using Vigia.Application.Common.Exceptions;
 using Vigia.Application.Common.Interfaces;
+using Vigia.Application.Health;
 using Vigia.Application.Placement;
 using Vigia.Application.Plugins;
 using Vigia.Domain.Common;
@@ -12,7 +13,7 @@ namespace Vigia.Application.Checks.UpdateCheck;
 /// <summary>
 /// Handles <see cref="UpdateCheckCommand"/>.
 /// </summary>
-public sealed class UpdateCheckHandler(IAppDbContext db, IPluginRegistry registry, TimeProvider time) : ICommandHandler<UpdateCheckCommand, CheckDto>
+public sealed class UpdateCheckHandler(IAppDbContext db, IPluginRegistry registry, TimeProvider time, IServiceHealthUpdater health) : ICommandHandler<UpdateCheckCommand, CheckDto>
 {
     /// <inheritdoc />
     public async ValueTask<CheckDto> Handle(UpdateCheckCommand command, CancellationToken ct)
@@ -69,6 +70,9 @@ public sealed class UpdateCheckHandler(IAppDbContext db, IPluginRegistry registr
         CheckWorkersSpecApplier.Apply(check, plugin, command.Workers);
 
         await db.SaveChangesAsync(ct);
+
+        // Membership, alerts or the graph may have changed.
+        await health.RecomputeAsync(ct);
         var workers = await db.Workers.AsNoTracking().ToListAsync(ct);
         return CheckDto.From(check, plugin, CheckPlacement.Evaluate(check, plugin, workers, time.GetUtcNow()));
     }

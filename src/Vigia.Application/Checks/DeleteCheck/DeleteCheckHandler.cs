@@ -2,13 +2,14 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Vigia.Application.Common.Exceptions;
 using Vigia.Application.Common.Interfaces;
+using Vigia.Application.Health;
 
 namespace Vigia.Application.Checks.DeleteCheck;
 
 /// <summary>
 /// Handles <see cref="DeleteCheckCommand"/>. Results and rollups go with it (cascade).
 /// </summary>
-public sealed class DeleteCheckHandler(IAppDbContext db) : ICommandHandler<DeleteCheckCommand>
+public sealed class DeleteCheckHandler(IAppDbContext db, IServiceHealthUpdater health) : ICommandHandler<DeleteCheckCommand>
 {
     /// <inheritdoc />
     public async ValueTask<Unit> Handle(DeleteCheckCommand command, CancellationToken ct)
@@ -18,6 +19,9 @@ public sealed class DeleteCheckHandler(IAppDbContext db) : ICommandHandler<Delet
 
         db.Checks.Remove(check);
         await db.SaveChangesAsync(ct);
+
+        // Membership, alerts or the graph may have changed.
+        await health.RecomputeAsync(ct);
         return Unit.Value;
     }
 }

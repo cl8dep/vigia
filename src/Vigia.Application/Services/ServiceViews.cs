@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Vigia.Application.Common.Interfaces;
 using Vigia.Application.Common.Json;
+using Vigia.Application.Health;
 using Vigia.Domain.Services;
 
 namespace Vigia.Application.Services;
@@ -17,6 +18,8 @@ public static class ServiceViews
         var slugs = await db.Services.AsNoTracking().ToDictionaryAsync(s => s.Id, s => s.Slug, ct);
         var checks = await db.Checks.AsNoTracking().OrderBy(c => c.Slug).ToListAsync(ct);
         var rules = await db.Rules.AsNoTracking().Where(r => r.Enabled).ToListAsync(ct);
+        var ids = services.Select(s => s.Id).ToList();
+        var health = await db.ServiceHealth.AsNoTracking().Where(h => ids.Contains(h.ServiceId)).ToDictionaryAsync(h => h.ServiceId, ct);
 
         return services.Select(service =>
         {
@@ -36,6 +39,7 @@ public static class ServiceViews
                 dependsOn,
                 [.. matched.Select(c => c.Slug)],
                 uncovered,
+                health.TryGetValue(service.Id, out var snapshot) ? HealthNames.ToDto(snapshot) : null,
                 JsonNamingPolicy.CamelCase.ConvertName(service.ManagedBy.ToString()));
         }).ToList();
     }

@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Vigia.Application.Health;
 
 namespace Vigia.Application.Services;
 
@@ -13,6 +14,7 @@ namespace Vigia.Application.Services;
 /// <param name="DependsOn">Dependencies.</param>
 /// <param name="MatchedChecks">Slugs of the checks the selector currently matches.</param>
 /// <param name="UncoveredChecks">Matched checks that no enabled rule targets, so they can never affect health.</param>
+/// <param name="Health">Stored health, or null before the first computation.</param>
 /// <param name="ManagedBy">Owning front end.</param>
 public sealed record ServiceDto(
     string Slug,
@@ -23,4 +25,5 @@ public sealed record ServiceDto(
     IReadOnlyList<DependencyDto> DependsOn,
     IReadOnlyList<string> MatchedChecks,
     IReadOnlyList<string> UncoveredChecks,
+    ServiceHealthDto? Health,
     string ManagedBy);

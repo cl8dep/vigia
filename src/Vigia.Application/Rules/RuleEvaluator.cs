@@ -33,12 +33,15 @@ public sealed class RuleEvaluator(
     /// <summary>A worker counts while its latest result is at most this many check intervals older than the new one.</summary>
     public const int FreshIntervals = 2;
 
-    /// <summary>Evaluates <paramref name="result"/>, which is added to the context but not saved yet.</summary>
-    public async Task EvaluateAsync(Check check, CheckResult result, CancellationToken ct)
+    /// <summary>
+    /// Evaluates <paramref name="result"/>, which is added to the context but not saved yet.
+    /// Returns true when an alert opened or resolved, which can change service health.
+    /// </summary>
+    public async Task<bool> EvaluateAsync(Check check, CheckResult result, CancellationToken ct)
     {
         if (result.Outcome == ResultOutcome.Error)
         {
-            return;
+            return false;
         }
 
         var rules = (await db.Rules.Where(r => r.Enabled).ToListAsync(ct))
@@ -46,7 +49,7 @@ public sealed class RuleEvaluator(
             .ToList();
         if (rules.Count == 0)
         {
-            return;
+            return false;
         }
 
         // History for the deepest rule plus the freshness window, across all workers.
@@ -84,13 +87,16 @@ public sealed class RuleEvaluator(
         var where = await WorkerLabelsAsync(streams.Keys, ct);
         var checkQuorum = check.Quorum ?? Quorum.Parse(alerting.Value.DefaultQuorum);
 
+        var changed = false;
         foreach (var rule in rules)
         {
-            Evaluate(rule, check, result, streams, rule.Quorum ?? checkQuorum, firing.GetValueOrDefault(rule.Id), plugin, where);
+            changed |= Evaluate(rule, check, result, streams, rule.Quorum ?? checkQuorum, firing.GetValueOrDefault(rule.Id), plugin, where);
         }
+
+        return changed;
     }
 
-    private void Evaluate(
+    private bool Evaluate(
         Rule rule,
         Check check,
         CheckResult result,
@@ -103,7 +109,7 @@ public sealed class RuleEvaluator(
         // The new result must be evaluable for this rule, or it changes nothing.
         if (!IsEvaluable(rule, result))
         {
-            return;
+            return false;
         }
 
         // A worker with no evaluable results counts as healthy: it is online and has seen nothing wrong.
@@ -122,16 +128,23 @@ public sealed class RuleEvaluator(
         if (alert is null && failing.Count >= required)
         {
             db.Alerts.Add(new Alert(rule.Id, check.Id, rule.Severity, Describe(rule, result, plugin, failing, states.Count, where), result.ObservedAt));
+            return true;
         }
-        else if (alert is not null && Matches(rule, result))
+
+        if (alert is not null && Matches(rule, result))
         {
             var failingNow = states.Where(s => s.Failing > 0).Select(s => s.Worker).ToList();
             alert.Seen(Describe(rule, result, plugin, failingNow, states.Count, where), result.ObservedAt);
+            return false;
         }
-        else if (alert is not null && notRecovered < required)
+
+        if (alert is not null && notRecovered < required)
         {
             alert.Resolve(result.ObservedAt);
+            return true;
         }
+
+        return false;
     }
 
     /// <summary>Webhook results belong to the built-in worker's stream: both come from the control plane.</summary>

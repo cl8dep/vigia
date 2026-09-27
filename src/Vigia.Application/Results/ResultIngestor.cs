@@ -1,16 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using Vigia.Application.Workers;
 using Vigia.Application.Common.Interfaces;
+using Vigia.Application.Health;
 using Vigia.Application.Rules;
 using Vigia.Domain.Results;
 
 namespace Vigia.Application.Results;
 
 /// <summary>
-/// The single entry point for results: stores the result and evaluates rules in one save, so an alert never
-/// exists without the result that caused it (or the other way around).
+/// The single entry point for results: stores the result, evaluates rules and, when an alert opened or resolved,
+/// recomputes service health, all in the caller's transaction, so none of them exists without its cause.
 /// </summary>
-public sealed class ResultIngestor(IAppDbContext db, RuleEvaluator rules)
+public sealed class ResultIngestor(IAppDbContext db, RuleEvaluator rules, IServiceHealthUpdater health)
 {
     /// <summary>Stores and evaluates one probe result. Results for deleted checks are dropped.</summary>
     public async Task IngestAsync(ProbeRecord record, CancellationToken ct)
@@ -32,7 +33,12 @@ public sealed class ResultIngestor(IAppDbContext db, RuleEvaluator rules)
             record.ObservedAt);
         db.CheckResults.Add(result);
 
-        await rules.EvaluateAsync(check, result, ct);
+        var alertsChanged = await rules.EvaluateAsync(check, result, ct);
         await db.SaveChangesAsync(ct);
+
+        if (alertsChanged)
+        {
+            await health.RecomputeAsync(ct);
+        }
     }
 }
